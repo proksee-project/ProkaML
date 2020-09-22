@@ -1,17 +1,17 @@
-Salmonella enterica	275001
-Escherichia coli	81413
-Campylobacter jejuni	37694
+Salmonella enterica	275067
+Escherichia coli	81439
+Campylobacter jejuni	37698
 Listeria monocytogenes	34027
-Campylobacter coli	15143
-Shigella sonnei	8704
-Staphylococcus aureus	7833
+Campylobacter coli	15147
+Shigella sonnei	8706
+Staphylococcus aureus	7836
 uncultured prokaryote	7538
-Klebsiella pneumoniae	6517
+Klebsiella pneumoniae	6524
 human gut metagenome	5657
 Streptococcus pneumoniae	5637
-Shigella flexneri	5213
+Shigella flexneri	5214
 Pseudomonas aeruginosa	4208
-Acinetobacter baumannii	3481
+Acinetobacter baumannii	3533
 uncultured Pelagibacteraceae bacterium	2391
 Mycobacterium tuberculosis	2015
 Staphylococcus epidermidis	2012
@@ -67,8 +67,8 @@ Clostridiales bacterium	367
 Acinetobacter pittii	359
 uncultured Prochlorococcus sp.	348
 uncultured Methylococcaceae bacterium	345
+Campylobacter lari	340
 Corynebacterium diphtheriae	340
-Campylobacter lari	339
 Euryarchaeota archaeon	327
 Streptococcus equi	318
 Firmicutes bacterium	312
@@ -155,8 +155,8 @@ Bifidobacterium adolescentis	139
 Flavobacteriales bacterium	139
 uncultured Gammaproteobacteria bacterium	138
 Mycobacterium avium	138
+Gemmatimonadetes bacterium	136
 uncultured Ruminococcaceae bacterium	136
-Gemmatimonadetes bacterium	135
 uncultured Oscillospiraceae bacterium	135
 Enterobacter cloacae	134
 Planctomycetia bacterium	134
@@ -306,13 +306,13 @@ Staphylococcus simulans	53
 Pseudomonas stutzeri	52
 Candidatus Uhrbacteria bacterium	52
 Snodgrassella alvi	52
+Chitinophagaceae bacterium	51
 archaeon	51
 uncultured Flavobacteriales bacterium	51
 uncultured Candidatus Saccharibacteria bacterium	51
 Halieaceae bacterium	51
 Leuconostoc mesenteroides	51
 Leptospira santarosai	51
-Chitinophagaceae bacterium	50
 uncultured Gemmatimonadetes bacterium	50
 Epibacterium mobile	50
 Aureobasidium pullulans	50
@@ -359,6 +359,7 @@ Crocinitomicaceae bacterium	43
 Enterococcus durans	43
 Aeromonas salmonicida	43
 Staphylococcus cohnii	43
+Nitrospiraceae bacterium	42
 Pseudomonadales bacterium	42
 Streptococcus anginosus	42
 Faecalibacterium prausnitzii	42
@@ -374,7 +375,6 @@ Bifidobacterium animalis	41
 Leptospira borgpetersenii	41
 Macrococcus caseolyticus	41
 Mycobacteroides chelonae	41
-Nitrospiraceae bacterium	40
 Candidatus Kaiserbacteria bacterium	40
 Microcystis aeruginosa	40
 Escherichia fergusonii	40
@@ -469,6 +469,7 @@ Streptococcus parasanguinis	33
 Balneolales bacterium	33
 Streptomyces rimosus	33
 activated sludge metagenome	33
+Achromobacter xylosoxidans	32
 Clostridium tetani	32
 Pelagibacteraceae bacterium	32
 Methylotenera sp.	32
@@ -479,7 +480,6 @@ Candidatus Cloacimonetes bacterium	32
 Bacteroides caccae	32
 saltern metagenome	32
 Komagataella pastoris	32
-Achromobacter xylosoxidans	31
 Opitutales bacterium	31
 Candidatus Lokiarchaeota archaeon	31
 Elusimicrobia bacterium	31
@@ -647,6 +647,7 @@ Citrobacter koseri	22
 Photobacterium phosphoreum	22
 Caldicellulosiruptor bescii	22
 Anaplasma phagocytophilum	22
+Thermoleophilaceae bacterium	21
 Marinobacter sp.	21
 uncultured Anaerolineales bacterium	21
 uncultured Microbacteriaceae bacterium	21
@@ -664,13 +665,13 @@ Acidiferrobacteraceae bacterium	21
 rock metagenome	21
 Aliivibrio fischeri	21
 Wallemia ichthyophaga	21
+Pyrinomonadaceae bacterium	20
 uncultured Candidatus Peregrinibacteria bacterium	20
 Candidatus Collierbacteria bacterium	20
 uncultured Pirellula sp.	20
 uncultured Roseiflexaceae bacterium	20
 Candidatus Dadabacteria bacterium	20
 Planctomyces sp.	20
-Thermoleophilaceae bacterium	20
 Providencia alcalifaciens	20
 uncultured Megasphaera sp.	20
 Oceanospirillaceae bacterium	20
@@ -689,6 +690,7 @@ Pseudomonas syringae group genomosp. 3	20
 Porphyromonas gingivalis	20
 Streptococcus parauberis	20
 Photobacterium kishitanii	20
+Cytophagales bacterium	19
 Candidatus Aerophobetes bacterium	19
 Lactobacillus kunkeei	19
 Mobiluncus mulieris	19
@@ -720,8 +722,6 @@ Mycobacterium colombiense	19
 Chlamydia abortus	19
 Bacillus wiedmannii	19
 Solemya velum gill symbiont	19
-Cytophagales bacterium	18
-Pyrinomonadaceae bacterium	18
 Calditrichaeota bacterium	18
 uncultured Rickettsiales bacterium	18
 uncultured Syntrophaceae bacterium	18
@@ -771,6 +771,7 @@ Anaplasma marginale	17
 Bacillus atrophaeus	17
 Schizosaccharomyces pombe	17
 Alteromonas sp.	17
+Thermoleophilia bacterium	16
 Listeria marthii	16
 Blautia massiliensis	16
 Pseudomonas mendocina	16
@@ -975,10 +976,10 @@ Corynebacterium pseudotuberculosis	12
 Pseudomonas avellanae	12
 Mycolicibacterium conceptionense	12
 Moritella viscosa	12
+Rubrobacter sp.	11
 Listeria ivanovii	11
 Eubacterium sp.	11
 Pedobacter sp.	11
-Thermoleophilia bacterium	11
 Novosphingobium sp.	11
 Roseovarius sp.	11
 Corynebacterium amycolatum	11
@@ -1120,6 +1121,7 @@ Corynebacterium belfantii	10
 Porphyrobacter donghaensis	10
 Acidithiobacillus thiooxidans	10
 Mycoplasma gallisepticum	10
+Acetobacteraceae bacterium	9
 Nocardia farcinica	9
 Pantoea vagans	9
 Pseudomonas lurida	9
@@ -1140,7 +1142,6 @@ uncultured Syntrophobacterales bacterium	9
 uncultured Silvanigrella sp.	9
 Methylobacterium radiotolerans	9
 Vibrio rotiferianus	9
-Rubrobacter sp.	9
 Lysobacter sp.	9
 Nitrososphaerales archaeon	9
 Syntrophaceae bacterium	9
@@ -1200,10 +1201,11 @@ Halobacteriovoraceae bacterium	9
 Terribacillus saccharophilus	9
 Mycobacterium asiaticum	9
 Burkholderia sp.	9
+Flavisolibacter sp.	8
+Ralstonia insidiosa	8
 Vibrio metschnikovii	8
 Pseudomonas alcaligenes	8
 Bryobacteraceae bacterium	8
-Acetobacteraceae bacterium	8
 candidate division SR1 bacterium	8
 Nitrosomonas sp.	8
 Pseudomonas mosselii	8
@@ -1313,7 +1315,6 @@ Verrucomicrobiae bacterium	7
 Stenotrophomonas rhizophila	7
 Cellulomonas hominis	7
 Rhodopseudomonas palustris	7
-Ralstonia insidiosa	7
 Pectobacterium aroidearum	7
 Candidatus Kerfeldbacteria bacterium	7
 uncultured Desulfobulbaceae bacterium	7
@@ -1631,6 +1632,7 @@ Leptospira licerasiae	6
 Borreliella afzelii	6
 Rhizopus oryzae	6
 Treponema pedis	6
+Rubrobacteraceae bacterium	5
 Lactobacillus sp.	5
 Micromonospora aurantiaca	5
 protist metagenome	5
@@ -1899,7 +1901,6 @@ Enterococcus lactis	4
 Syntrophus sp. (in: Bacteria)	4
 Sideroxydans sp.	4
 Rhodobacter sp.	4
-Rubrobacteraceae bacterium	4
 Propionibacteriales bacterium	4
 Parachlamydiaceae bacterium	4
 Acinetobacter gyllenbergii	4
@@ -2949,6 +2950,8 @@ Staphylococcus schweitzeri	3
 Lachnoclostridium phytofermentans	3
 Streptomyces bikiniensis	3
 Salinivibrio socompensis	3
+Nitrososphaeraceae archaeon	2
+Chitinophaga varians	2
 Biomphalaria glabrata	2
 Carnobacterium inhibens	2
 Leuconostoc sp.	2
@@ -3120,7 +3123,6 @@ Pseudomonas sihuiensis	2
 uncultured Noviherbaspirillum sp.	2
 uncultured Cutibacterium sp.	2
 Sporichthyaceae bacterium	2
-Flavisolibacter sp.	2
 Rickettsiaceae bacterium	2
 Euzebyales bacterium	2
 uncultured Draconibacterium sp.	2
@@ -5043,6 +5045,31 @@ Rhizobium sp. JGI 0001002-C21	2
 Chitinophagaceae bacterium JGI 0001002-J12	2
 alpha proteobacterium JGI 0001002-I18	2
 Treponema socranskii	2
+Pseudoalteromonas sp. EKP108	1
+Flammeovirga sp. EKP202	1
+Bacillus sp. 1021	1
+Bacillus sp. 2211	1
+Tianweitania sp. Rool2	1
+Paenibacillus sp. WST5	1
+Microcoleus sp. C1-bin4	1
+Nostoc sp. C3-bin3	1
+Coleofasciculus sp. C3-bin4	1
+Microcoleus sp. Co-bin12	1
+Cyanobacteria bacterium Co-bin13	1
+Coleofasciculus sp. Co-bin14	1
+Aldersonia sp.	1
+Jiangellaceae bacterium	1
+Cyanobacteria bacterium Co-bin8	1
+Tolypothrix sp. Co-bin9	1
+Microcoleus sp. T1-bin1	1
+Microcoleus sp. T3-bin5	1
+Tolypothrix sp. T3-bin4	1
+Yimella sp. cx-51	1
+Leucobacter sp. cx-328	1
+Leucobacter sp. cx-169	1
+Leucobacter sp. cx-87	1
+Leucobacter sp. cx-42	1
+Chitinophaga qingshengii	1
 Schmidingerella arcuata	1
 Flavobacteriaceae bacterium Dm15	1
 Actinotalea sp. JY-7885	1
@@ -6812,7 +6839,6 @@ Corallococcus coralloides	1
 Bradyrhizobium sp. WSM 1791	1
 Bradyrhizobium sp. WSM 1744	1
 Candidatus Nitrosocosmicus sp.	1
-Nitrososphaeraceae archaeon	1
 Vibrio sp. 99-70-13A1	1
 Vibrio pectenicida	1
 Vibrio sp. 99-8-1	1
@@ -7373,7 +7399,6 @@ Rhizobium sp. P40RR-XXII	1
 Rhizobium sp. P32RR-XVIII	1
 Rhizobium sp. P28RR-XV	1
 Leeia sp. IMCC25680	1
-Chitinophaga varians	1
 Lactobacillus sp. ZJLC29-4	1
 Lactobacillus sp. ZJLC28-8	1
 Lactobacillus sp. LC28-10	1
