@@ -128,6 +128,9 @@ def main():
 		if not os.path.exists(output_dir):
 			os.mkdir(output_dir)
 
+		#email = "arnab22.iitkgp@gmail.com"
+		#api_key = "9b946150b1df235cf0e7c288ca4588a97c08"
+
 		try:
 			'''Obtaining total counts of assembly records'''
 			num = count_assem_records(email, api_key)
