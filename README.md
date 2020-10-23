@@ -10,12 +10,12 @@ Step 2: Within the `metadata` folder, run `idlist_retriever.py`. This examines `
 - id_list_minor - Folder containing UIDs for species < 10 assemblies each
 
 Step 3: Within the `metadata` folder, run `metadata_extract_fileindex.py`. This takes in one of the input directories generated in Step 2, captures NCBI metadata corresponding to different genomic assemmbly metrics and writes the metadata for all files containing assembly UIDs to a desired output directory. Depending on the number of files in a directory, the script takes integer index as an argument which facilitates parallel processing.  
-e.g. if id_list_interm dirctory has 10 files, and the desired output directory is interm_metadata, the script `metadata_extract_fileindex.py` can be used in the following way:  
-metadata_extract_fileindex.py id_list_interm interm_metadata 0  
-metadata_extract_fileindex.py id_list_interm interm_metadata 1  
-metadata_extract_fileindex.py id_list_interm interm_metadata 2  
-..............................................................  
-metadata_extract_fileindex.py id_list_interm interm_metadata 9  
+e.g. if `id_list_interm` dirctory has 10 files, and the desired output directory is `interm_metadata`, the script `metadata_extract_fileindex.py` can be used in the following way:  
+- `metadata_extract_fileindex.py id_list_interm interm_metadata 0`  
+- `metadata_extract_fileindex.py id_list_interm interm_metadata 1`  
+- `metadata_extract_fileindex.py id_list_interm interm_metadata 2`  
+- `..............................................................`  
+- `metadata_extract_fileindex.py id_list_interm interm_metadata 9`  
 
 The parallel processing should be performed in a cluster or a computer with sufficient number of available cores. In theory, `metadata_extract_fileindex.py` can be run in as many parallel instances depending on the number of files, but care must be taken so as not to run more than 10 parallel instances. This is because NCBI limits the number of API requests to 10 per second. Overusage may block the user or even an IP of an institution. Should the need for parallel extensive API requests arise, user should contact eutilities@ncbi.nml.nih.gov.
 
