@@ -1,6 +1,7 @@
 # proksee-database
 Reference library for microorganisms with different genome assembly metrics and statistics
 
+## proksee-database generation
 Step 1: Run `assemblydb_entrez_query.py` . This runs Entrez API queries to scan for contig assemblies on entire NCBI assembly database. Generates counts of species/organism names in a two column tab separated text file `species_counts.txt`  
 
 Step 2: Within the `metadata` folder, run `idlist_retriever.py`. This examines `species_counts.txt` and generates list of assembly UIDs for all species. Since some species are better represented in assembly database than others, this script writes UIDs into four separate folders based on counts of assemblies for a particular species  
@@ -19,4 +20,6 @@ e.g. if `id_list_interm` dirctory has 10 files, and the desired output directory
 
 The parallel processing should be performed in a cluster or a computer with sufficient number of available cores. In theory, `metadata_extract_fileindex.py` can be run in as many parallel instances depending on the number of files, but care must be taken so as not to run more than 10 parallel instances. This is because NCBI limits the number of API requests to 10 per second. Overusage may block the user or even an IP of an institution. Should the need for parallel extensive API requests arise, user should contact eutilities@ncbi.nml.nih.gov.
 
-Step 4: 
+Step 4: It is upto the user to use annotated metadata in a species-wise or aggregated manner depending on the downstream analytical strategies. For now, species with > 100 assemblies are arranged as filenames for respective species e.g. major_species_metadata/Campylobacter_jejuni_metadata.txt . There are 34 species with > 1000 assemblies and 169 species with assemblies between 100 and 1000. These 203 species are annotated as separate files. Species with < 100 assemblies are agggregated as concatenated metadata files `intermediate_species_metadata.txt` and `minor_species_metadata.txt`
+
+## proksee-database-analytics
