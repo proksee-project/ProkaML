@@ -24,3 +24,9 @@ Step 4: It is upto the user to use annotated metadata in a species-wise or aggre
 
 ## proksee-database-analytics
 The underlying idea is to perform analysis on assembly metadata using pandas and matplotlib python libraries. A number of hypotheses and statistics are under investigation. We will perform individual queries on the most represented species (Salmonella enterica, Escherichia coli, Campylobacter jejuni, Listeria monocytogenes and Campylobacter coli). If a hypothesis under investigation leads to an interesting result for a potential paper, the individual queries will be expanded on other species for validation and generation of supplementary data/figures  
+
+## Machine learning evaluation of bacterical assembly QC
+Incorporated programs for implementation of machine learning on NCBI assembly database.
+- `median_metadata_log_calculator.py` : processes NCBI metadata and calculates median of logarithms of genomic attributes N50, Contig count, L50, total length and coverage. The calculations are done at species-wise level and and resulting median log calculated values are written to `species_median_log_metrics.txt`. This test file will be used for normalization of input assembly metrics used for machine learning prediction
+- `random_forest_import.py`: Curates the NCBI annotated metadata with normalized metrics based on Refseq inclusion/exclusion criteria and more filters to generate a random forest prediction model saved as an object `random_forest_model.joblib`
+- `model_load_predict.py`: Taken in input assembly, performs normalization using `species_median_log_metrics.txt` as input, performs prediction using `random_forest_model.joblib` and outputs probabilities of assembly QC as a separate column. This is a work in progress
