@@ -47,9 +47,11 @@ def calculate_staistics(dataframe):
 
     return statistics
 
+
 if __name__ == '__main__':
 
     SPECIES = 0
+    REFSEQ_ACCESSION = 5
     N50 = 10
     NUM_CONTIGS = 11
     L50 = 12
@@ -58,7 +60,7 @@ if __name__ == '__main__':
     ASSEMBLY_METHOD = 14
     TECHNOLOGY = 15
 
-    COLS = [SPECIES, N50, NUM_CONTIGS, L50, LENGTH, ASSEMBLY_METHOD, TECHNOLOGY]
+    COLS = [SPECIES, REFSEQ_ACCESSION, N50, NUM_CONTIGS, L50, LENGTH, ASSEMBLY_METHOD, TECHNOLOGY]
 
     species_statistics = []
 
@@ -67,10 +69,27 @@ if __name__ == '__main__':
         print(file_location)
         dataframe = pandas.read_csv(file_location, delimiter=DELIMITER)
         dataframe = dataframe.iloc[:, COLS]
+        species = dataframe["Organism Name"].tolist()[0]
 
-        searchfor = ["Illumina", "454", "Ion Torrent", "IonTorrent"]
+        # Filter for sequencing platform
+        searchfor = ["Illumina", "454", "Ion Torrent", "IonTorrent", "SOLiD", "Sanger", "Solexa", "BGI", "CompleteGenomics"]
         dataframe = dataframe[dataframe['Sequencing Technology'].str.contains("|".join(searchfor), na=False, case=False)]
-        dataframe = dataframe.iloc[:, :5]
+
+        # Check for all NA columns:
+        bad_columns = dataframe.columns[dataframe.isna().all()].tolist()
+        if len(bad_columns) > 0:
+            species_statistics.append([species])
+            continue
+
+        # Filter by only included in RefSeq
+        dataframe = dataframe[dataframe['Refseq Accession'].str.contains("_", na=False, case=False)]
+
+        dataframe = dataframe.iloc[:, [0, 2, 3, 4, 5]]
+
+        # Check for no rows:
+        if dataframe.count == 0:
+            species_statistics.append([species])
+            continue
 
         statistics = calculate_staistics(dataframe)
         species_statistics.append(statistics)
