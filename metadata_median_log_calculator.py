@@ -70,7 +70,7 @@ def median_log_species(df):
 	median_log_totlen = df['logtotlen'].median()
 	median_log_coverage = df['logcoverage'].median()
 
-	return median_log_n50, median_log_contigcount, median_log_l50, median_log_contigcount, median_log_coverage
+	return median_log_n50, median_log_contigcount, median_log_l50, median_log_totlen, median_log_coverage
 
 #function to write median of log of metrics to file
 def species_reference_median_log(indiv_sp_df, outfile):
