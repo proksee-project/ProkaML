@@ -54,7 +54,8 @@ def species_grouping(species_ok):
 	return species_grp_list
 
 #function to calculate median of log of numerical genomic attributes per species 
-#attributes are N50, Contig count, L50, total length, coverage, can be expanded 
+#attributes are N50, Contig count, L50, total length, coverage
+#for GCcontent, we calculate median without taking log
 def median_log_species(df):
 	df = df.assign(logn50=round(np.log10(df['ContigN50']),3))
 	df = df.assign(logcontigcount=round(np.log10(df['Contig count']),3))
@@ -69,8 +70,9 @@ def median_log_species(df):
 	median_log_l50 = df['logl50'].median()
 	median_log_totlen = df['logtotlen'].median()
 	median_log_coverage = df['logcoverage'].median()
+	median_gc_content = df['GCcontent'].median()
 
-	return median_log_n50, median_log_contigcount, median_log_l50, median_log_totlen, median_log_coverage
+	return median_log_n50, median_log_contigcount, median_log_l50, median_log_totlen, median_log_coverage, median_gc_content
 
 #function to write median of log of metrics to file
 def species_reference_median_log(indiv_sp_df, outfile):
@@ -83,7 +85,7 @@ def species_reference_median_log(indiv_sp_df, outfile):
 def main():
 	#passing integrated metadata file as first argument
 	filename = sys.argv[1]
-	filedir = '/mnt/c/Users/arnab/Documents/GitHub/proksee-database/metadata/annotated_metadata/Original'
+	filedir = '/mnt/c/Users/arnab/Documents/GitHub/proksee-database/gc_content_calculate'
 	filepath = os.path.join(filedir, filename)
 	
 	#excluding species without valid taxonomy names
@@ -94,8 +96,8 @@ def main():
 	species_grp_list = species_grouping(species_accept_df)
 
 	#Output file header
-	outfile_ref = open('species_median_log_metrics.txt', 'w')
-	outfile_ref.write('Species\tlogn50\tlogcontigcount\tlogl50\tlogtotlen\tlogcoverage\n')
+	outfile_ref = open('species_median_log_metrics_intermediate.txt', 'w')
+	outfile_ref.write('Species\tlogn50\tlogcontigcount\tlogl50\tlogtotlen\tlogcoverage\tgccontent\n')
 	
 	#Writing median of log of calculated metrics per species
 	for indiv_sp_df in species_grp_list:

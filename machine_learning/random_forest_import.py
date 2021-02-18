@@ -12,20 +12,7 @@ import joblib
 rfc = RandomForestClassifier()
 
 START_DIR = Path(__file__).resolve().parents[1]
-filepath = '{}/metadata/annotated_metadata/lognormal_somecolumns/major_species_lognormal_concat.txt'.format(str(START_DIR))
-
-def random_forest_cv_confmat(x, y):
-    rfc_cv_predict = cross_val_predict(rfc, x, y, cv=10)
-    conf_mat = confusion_matrix(y, rfc_cv_predict)
-    
-    return conf_mat
-
-def random_forest_predictproba(x_train,y_train,x_test):
-    rfc.fit(x_train,y_train)
-    prediction_probability = rfc.predict_proba(x_test)
-    
-    return prediction_probability
-
+filepath = '{}/gc_content_calculate/major_species_normalized.txt'.format(str(START_DIR))
 
 def assembly_method_categorical(x):    
     x = x.replace({'Assembly Method':r'.*[Aa]5.*$'},{'Assembly Method':'A5-miseq'},regex=True)
@@ -152,8 +139,8 @@ refseqY_df = seq_plat_categorical(refseqY_df)
 refseqN_further = seq_plat_categorical(refseqN_further)
 
 #Creating dataframes of inclusion and exclusion sets with columns of interest
-inclusion_set = refseqY_df[['logn50_norm','logcontigcount_norm','logl50_norm','logtotlen_norm','logcoverage_norm','Assembly Method','Sequencing Technology','datalabel']]
-exclusion_set = refseqN_further[['logn50_norm','logcontigcount_norm','logl50_norm','logtotlen_norm','logcoverage_norm','Assembly Method','Sequencing Technology','datalabel']]
+inclusion_set = refseqY_df[['logn50_norm','logcontigcount_norm','logl50_norm','logtotlen_norm','Assembly Method','Sequencing Technology','GC_norm','datalabel']]
+exclusion_set = refseqN_further[['logn50_norm','logcontigcount_norm','logl50_norm','logtotlen_norm','Assembly Method','Sequencing Technology','GC_norm','datalabel']]
 
 #Identifying index of long read associated assemblers and sequencing technologies
 long_read_index_incl = inclusion_set[(inclusion_set['Sequencing Technology'] == 'OxfordNanopore') | \
@@ -177,8 +164,8 @@ inclusion_set.drop(long_read_index_incl, inplace=True)
 exclusion_set.drop(long_read_index_excl, inplace=True)
 
 #Subsetting dataframe to contain only numerical attributes
-inclusion_set_numerical = inclusion_set[['logn50_norm','logcontigcount_norm','logl50_norm','logtotlen_norm','logcoverage_norm','datalabel']]
-exclusion_set_numerical = exclusion_set[['logn50_norm','logcontigcount_norm','logl50_norm','logtotlen_norm','logcoverage_norm','datalabel']]
+inclusion_set_numerical = inclusion_set[['logn50_norm','logcontigcount_norm','logl50_norm','logtotlen_norm','GC_norm','datalabel']]
+exclusion_set_numerical = exclusion_set[['logn50_norm','logcontigcount_norm','logl50_norm','logtotlen_norm','GC_norm','datalabel']]
 frame = [inclusion_set_numerical, exclusion_set_numerical]
 integrated_frame = pd.concat(frame, ignore_index=True)
 inclusion = integrated_frame.loc[integrated_frame['datalabel']==1]
@@ -194,6 +181,14 @@ integrated_bal = pd.concat(balanced, ignore_index=True)
 X_bal = integrated_bal.drop('datalabel', axis=1)
 Y_bal = integrated_bal['datalabel']
 
-#training and importing random forest model
-rfc.fit(X_bal,Y_bal)
-joblib.dump(rfc, "random_forest_model.joblib")
+#Some GCnormalized values are missing, so we perform median imputation
+from sklearn.impute import SimpleImputer
+imp = SimpleImputer(missing_values=np.nan, strategy='median')
+
+imp = imp.fit(X_bal)
+X_bal_imp = imp.transform(X_bal)
+
+
+#training and importing random forest model with coverage included
+rfc.fit(X_bal_imp, Y_bal)
+joblib.dump(rfc, "random_forest_n50_contigcount_l50_totlen_gccontent.joblib")
