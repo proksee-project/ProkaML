@@ -19,14 +19,15 @@ e.g. if `id_list_interm` dirctory has 10 files, and the desired output directory
 - `metadata_extract_fileindex.py email api_key id_list_interm interm_metadata 0`  
 - `metadata_extract_fileindex.py email api_key id_list_interm interm_metadata 1`  
 - `metadata_extract_fileindex.py email api_key id_list_interm interm_metadata 2`  
-- `..............................................................`  
+- `............................................................................`  
 - `metadata_extract_fileindex.py email api_key id_list_interm interm_metadata 9`  
 
 The parallel processing should be performed in a cluster or a computer with sufficient number of available cores. In theory, `metadata_extract_fileindex.py` can be run in as many parallel instances depending on the number of files, but care must be taken so as not to run more than 10 parallel instances. This is because NCBI limits the number of API requests to 10 per second. Over-usage of NCBI API requests may block the user or even an IP of an institution. Should the need for parallel extensive API requests arise, user should contact eutilities@ncbi.nml.nih.gov.
 
-Step 3 (Alternate): Run `metadata_extract_filename.py`. This step is almost identical to the recommended step 3 with the only difference arising in providing filename as the last argument instead of ilfe number index. 
+Step 3 (Alternate): Run `metadata_extract_filename.py`. This step is almost identical to the recommended step 3 with the only difference arising in providing filename as the last argument instead of life number index.  
 e.g. if one of the files within directory `id_list_interm` is `Acholeplasma_laidlawii_chunk1_idlist.txt`, the usage of this script would be: 
 - `python metadata_extract_fileindex.py id_list_interm interm_metadata Acholeplasma_laidlawii_chunk1_idlist.txt`  
+
 This step is used for troubleshooting when individual files containing UIDs are not annotated with NCBI metadata for reasons beyond the user's control (NCBI server/connection issues)  
 
 Step 4: It is upto the user to use annotated metadata in a species-wise or aggregated manner depending on the downstream analytical strategies. For now, species with > 100 assemblies are arranged as filenames for respective species e.g. major_species_metadata/Campylobacter_jejuni_metadata.txt . There are 34 species with > 1000 assemblies and 169 species with assemblies between 100 and 1000. These 203 species are annotated as separate files. Species with < 100 assemblies are agggregated as concatenated metadata files `intermediate_species_metadata.txt` and `minor_species_metadata.txt`
