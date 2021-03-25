@@ -22,30 +22,32 @@ import sys
 from Bio import Entrez
 import re
 
-def species_select(in_dir=None):
-	sp_list_major = []
-	sp_list_large = []
-	sp_list_interm = []
-	sp_list_minor = []
+
+def species_select():
+	species_list_major = []
+	species_list_large = []
+	species_list_interm = []
+	species_list_minor = []
 	
-	infile = open(os.path.join(in_dir, 'species_counts_oct2020.txt'),'r')
+	infile = open('species_counts_Oct_2020.txt','r')
 	for line in infile:
-		sp = line.rstrip().split('\t')
-		sp_corrected = re.sub(r'[\[\]]','', sp[0])
-		sp_tup = sp_corrected, sp[1]
+		species_line = line.rstrip().split('\t')
+		species_corrected = re.sub(r'[\[\]]','', species_line[0])
+		species_tuple = species_corrected, species_line[1]
 
-		if int(sp_tup[1]) >= 1000:
-			sp_list_major.append(sp_tup)
-		elif int(sp_tup[1]) < 1000 and int(sp_tup[1]) >= 100:
-			sp_list_large.append(sp_tup)
-		elif int(sp_tup[1]) < 100 and int(sp_tup[1]) >= 10:
-			sp_list_interm.append(sp_tup)
-		elif int(sp_tup[1]) < 10:
-			sp_list_minor.append(sp_tup)
+		if int(species_line[1]) >= 1000:
+			species_list_major.append(species_tuple)
+		elif int(species_line[1]) < 1000 and int(species_line[1]) >= 100:
+			species_list_large.append(species_tuple)
+		elif int(species_line[1]) < 100 and int(species_line[1]) >= 10:
+			species_list_interm.append(species_tuple)
+		elif int(species_line[1]) < 10:
+			species_list_minor.append(species_tuple)
 
-	species_entire_tup = sp_list_major, sp_list_large, sp_list_interm, sp_list_minor
+	species_entire_tuple = species_list_major, species_list_large, species_list_interm, species_list_minor
 
-	return species_entire_tup
+	return species_entire_tuple
+
 
 def id_list(species_tuple=None):
 	try:
@@ -59,6 +61,7 @@ def id_list(species_tuple=None):
 
 	return record['IdList']
 
+
 def chunk_counter(idlist=None):
 	if len(idlist) % 10000 == 0:
 		chunks = len(idlist)/10000
@@ -66,6 +69,7 @@ def chunk_counter(idlist=None):
 		chunks = int(len(idlist)/10000) + 1
 
 	return chunks
+
 
 def species_outfile(species_tuple=None, chunks=None):
 	species_outfile_list = []
@@ -75,6 +79,7 @@ def species_outfile(species_tuple=None, chunks=None):
 		species_outfile_list.append(outfile)
 
 	return species_outfile_list
+
 
 def species_iterate(species_list=None, out_dir=None):
 	if not os.path.exists(out_dir):
@@ -92,6 +97,7 @@ def species_iterate(species_list=None, out_dir=None):
 				idlist_batch = []
 				for m in range(idlist_lowerlim, min(idlist_upperlim, len(idlist))):
 						idlist_batch.append(idlist[m])
+
 				output_handle = os.path.join(out_dir, species_outfile_list[k])
 				output_file = open(output_handle, 'w')
 				idlist_string = '\n'.join(idlist_batch)
@@ -99,30 +105,27 @@ def species_iterate(species_list=None, out_dir=None):
 		elif chunks == 0:
 			print(str(count) + ' species processing: ' + str(sp_tup[0]) + ' returns empty ID list with esearch. skipping..')
 
+
 def main():
-	if len(sys.argv) != 4:
+	if len(sys.argv) != 3:
 		sys.exit('''
-		Command usage: python idlist_retriever.py EMAIL NCBI_API_KEY INPUT_DIRECTORY. 
-		Need to pass 3 arguments corresponding to your email, your ncbi api key and 
-		the input directory containing species_counts_timeofyear.txt
+		Command usage: python idlist_retriever.py EMAIL NCBI_API_KEY. 
+		Need to pass 2 arguments corresponding to your email and ncbi api key
 		''')
 	
 	else:
 		email = sys.argv[1]
 		api_key = sys.argv[2]
-		in_dir = sys.argv[3]
 
-		#Entrez.email = "arnab22.iitkgp@gmail.com"
-		#Entrez.api_key = "51efc5e252e63fae1155a67c802bdd8e3e09"
-
-		sp_all_tup = species_select(in_dir)
+		species_all_tuple = species_select()
 		Entrez.email = email
 		Entrez.api_key = api_key
 
-		species_iterate(sp_all_tup[0], 'id_list_major')
-		species_iterate(sp_all_tup[1], 'id_list_large')
-		species_iterate(sp_all_tup[2], 'id_list_interm')
-		species_iterate(sp_all_tup[3], 'id_list_minor')
+		species_iterate(species_all_tuple[0], 'id_list_major')
+		species_iterate(species_all_tuple[1], 'id_list_large')
+		species_iterate(species_all_tuple[2], 'id_list_interm')
+		species_iterate(species_all_tuple[3], 'id_list_minor')
+
 
 if __name__ == "__main__":
 	main()

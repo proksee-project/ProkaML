@@ -21,6 +21,7 @@ from Bio import Entrez
 from collections import defaultdict
 import sys
 import os
+from datetime import date
 
 
 def count_assem_records(email=None, api_key=None):
@@ -43,7 +44,7 @@ def count_assem_records(email=None, api_key=None):
 	return num
 
 
-def retr_assem_records(num=None):
+def retrieve_assem_records(num=None):
 	'''Retrieving all records of NCBI contig assemblies'''
 	handle1 = Entrez.esearch(db="assembly", term="contig[Assembly Level]", retmax = num)
 	record1 = Entrez.read(handle1)
@@ -99,10 +100,11 @@ def esummary(idlist_batch=None, species_dicn=None):
 		species_dicn[species] += 1
 
 
-def species_dicn_write(species_dicn=None, out_dir=None):
+def species_dicn_write(species_dicn=None):
 
-	'''Writing species dictionary (sorted by descending occurences) to separate output file'''
-	output_file = open(os.path.join(out_dir, 'species_counts.txt'), 'w')
+	'''Writing species dictionary (sorted by descending occurences) to output file stamped with month and year'''
+	month_year_stamp = date.today().strftime("%b_%Y")
+	output_file = open('species_counts_' + month_year_stamp + '.txt', 'w')
 	if species_dicn:
 		for species in sorted(species_dicn, key=species_dicn.get, reverse=True):
 			output_file.write('{}\t{}\n'.format(species, species_dicn[species]))
@@ -114,22 +116,15 @@ def species_dicn_write(species_dicn=None, out_dir=None):
 
 
 def main():
-	if len(sys.argv) != 4:
+	if len(sys.argv) != 3:
 		sys.exit('''
-		Command usage: python assemblydb_entrez_query.py EMAIL NCBI_API_KEY OUTPUT_DIRECTORY. 
-		Need to pass 3 arguments corresponding to your email, your ncbi api key and an output
-		directory to write the organism counts dictionary
+		Command usage: python assemblydb_entrez_query.py EMAIL NCBI_API_KEY. 
+		Need to pass 2 arguments corresponding to your email and ncbi api key
 		''')
 
 	else:
 		email = sys.argv[1]
 		api_key = sys.argv[2]
-		output_dir = sys.argv[3]
-		if not os.path.exists(output_dir):
-			os.mkdir(output_dir)
-
-		#email = "arnab22.iitkgp@gmail.com"
-		#api_key = "9b946150b1df235cf0e7c288ca4588a97c08"
 
 		try:
 			'''Obtaining total counts of assembly records'''
@@ -138,10 +133,10 @@ def main():
 			sys.exit(e)
 
 		''''Processing assembly records to create species dictionary'''
-		species_dicn = retr_assem_records(num)
+		species_dicn = retrieve_assem_records(num)
 
 		'''Writing species dictionary to output'''
-		print(species_dicn_write(species_dicn, output_dir))
+		print(species_dicn_write(species_dicn))
 
 
 if __name__ == '__main__':

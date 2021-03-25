@@ -1,22 +1,43 @@
+'''
+Copyright:
+
+University of Manitoba & National Microbiology Laboratory, Canada, 2020
+
+Written by: Arnab Saha Mandal
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this work except in compliance with the License. You may obtain a copy of the
+License at:
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+'''
+
 import os
 import sys
 from Bio import Entrez
-from metadata_class import Metadata
 import urllib.request
 import urllib.error
 import re
 
-#outfile.write('Organism Name\tOrganism Detail\tAssembly Name\tGenbank Accession\tRefseq Accession\tGenome Coverage\tSubmission Date\tLast Update Date\tRefseq Exclusion Reason\tContigN50\tAssembly Method\tSequencing Technology\n')
+
+#outfile.write('Organism Name\tOrganism Detail\tStrain/Isolate\tAssembly Name\tGenbank Accession\tRefseq Accession\tGenome Coverage\tSubmission Date\tLast Update Date\tRefseq Exclusion Reason\tContigN50\tContig count\tContigL50\tTotal length\tAssembly Method\tSequencing Technology\n')
 def esummary(idlist=None, outfile=None):
 	esum = Entrez.esummary(db="assembly", id=",".join(idlist))
 	docsum = Entrez.read(esum, validate=False)
 	for j in range(0, len(idlist)):
 		d = docsum['DocumentSummarySet']['DocumentSummary'][j]
 		org = d['SpeciesName']
+
 		if 'Organism' in d:
 			org_detail = d['Organism']
 		else:
 			org_detail = 'NA'
+
 		if 'Biosource' in d:
 			if d['Biosource']['InfraspeciesList']:
 				subtype = d['Biosource']['InfraspeciesList'][0]['Sub_type']
@@ -29,10 +50,12 @@ def esummary(idlist=None, outfile=None):
 				infra = 'NA'
 		else:
 			infra = 'NA'
+
 		if 'AssemblyName' in d:
 			assembly_name = d['AssemblyName']
 		else:
 			assembly_name = 'NA'
+
 		if 'Synonym' in d:
 			if d['Synonym']['Genbank'] == '':
 				genbank = 'NA'
@@ -45,26 +68,32 @@ def esummary(idlist=None, outfile=None):
 		else:
 			genbank = 'NA'
 			refseq = 'NA'
+
 		if 'Coverage' in d:
 			coverage = d['Coverage']
 		else:
 			coverage = 'NA'
+
 		if 'SubmissionDate' in d:
 			sub_date = d['SubmissionDate']
 		else:
 			sub_date = 'NA'
+
 		if 'LastUpdateDate' in d:
 			up_date = d['LastUpdateDate']
 		else:
 			up_date = 'NA'
+
 		if 'ExclFromRefSeq' in d:
 			refseq_excl = d['ExclFromRefSeq']
 		else:
 			refseq_excl = 'NA'
+
 		if 'ContigN50' in d:
 			n50 = d['ContigN50']
 		else:
 			n50 = 'NA'
+
 		if 'Meta' in d:
 			meta1 =  re.search(r'contig_count.+?(\d+)<', d['Meta'])
 			if meta1 is not None:
@@ -85,6 +114,7 @@ def esummary(idlist=None, outfile=None):
 			contig_count = 'NA'
 			l50 = 'NA'
 			total_len = 'NA'
+
 		if 'FtpPath_Assembly_rpt' in d and d['FtpPath_Assembly_rpt'] != '':
 			url = d['FtpPath_Assembly_rpt']
 			try:
@@ -120,6 +150,7 @@ def esummary(idlist=None, outfile=None):
 		outfile.write(output_string + '\n')
 		print(str(j) + 'th record processed. GbUid: ' + d['GbUid'])
 
+
 def idlist_parser(in_dir=None, out_dir=None, index=None):
 	filelist = os.listdir(in_dir)
 	filename = filelist[int(index)]
@@ -131,24 +162,30 @@ def idlist_parser(in_dir=None, out_dir=None, index=None):
 	
 	return idlist, output_file
 
+
 def main():
-	input_dir = sys.argv[1]
-	output_dir = sys.argv[2]
-	index = sys.argv[3]
+	if len(sys.argv) != 6:
+		sys.exit('''
+		Command usage: python metadata_extract_fileindex.py EMAIL NCBI_API_KEY INPUT_DIRECTORY OUTPUT_DIRECTORY INDEX. 
+		Need to pass 5 arguments corresponding to your email, ncbi api key, input directory of files containing
+		UIDs, output dirctory and an integer index corresponding to file number within the input directory. 
+		''')
 
-	if not os.path.exists(output_dir):
-		os.mkdir(output_dir)
+	else:
+		email = sys.argv[1]
+		api_key = sys.argv[2]
+		input_dir = sys.argv[3]
+		output_dir = sys.argv[4]
+		index = sys.argv[5]
 
-	idlist, output_file = idlist_parser(input_dir, output_dir, index)
+		if not os.path.exists(output_dir):
+			os.mkdir(output_dir)
 
-	Entrez.email = "arnab22.iitkgp@gmail.com"
-	Entrez.api_key = "51efc5e252e63fae1155a67c802bdd8e3e09"
-	
-	esummary(idlist, output_file)
+		Entrez.email = email
+		Entrez.api_key = api_key
+		idlist, output_file = idlist_parser(input_dir, output_dir, index)
+		esummary(idlist, output_file)
+
 
 if __name__ == "__main__":
 	main()
-
-
-
-
