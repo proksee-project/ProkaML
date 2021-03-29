@@ -24,8 +24,8 @@ Campylobacter coli	15398
 .........................  
 ```  
 
-Step 2: Run `idlist_retriever.py`. Usage: `python assemblydb_entrez_query.py email api_key`. 
-This examines `species_counts_[Month]_[year].txt` from step 1 and generates list of assembly UIDs for all species. Since some species are better represented (more assembly counts) in assembly database than others, this script writes UIDs into four separate directories based on counts of assemblies for a particular species  
+Step 2: Run `idlist_retriever.py`. Usage: `python idlist_retriever.py email api_key`. 
+This examines `species_counts_[Month]_[year].txt` from step 1 and generates list of assembly unique IDs (UIDs) for all species. Since some species are better represented (more assembly counts) in assembly database than others, this script writes UIDs into four separate directories based on counts of assemblies for a particular species  
 - id_list_major - Directory containing UIDs for species >= 1000 assemblies each. Species with > 10,000 assemblies are separated into chunk files each containing maximum of 10,000 UIDs      
 - id_list_large - Directory containing UIDs for species < 1000 but >= 100 assemblies each   
 - id_list_interm - Directory containing UIDs for species < 100 but >= 10 assemblies each
