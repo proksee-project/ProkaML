@@ -8,17 +8,10 @@ Step 1: Run `assemblydb_entrez_query.py` . Usage: `python assemblydb_entrez_quer
 This runs Entrez API queries to scan for contig assemblies on the entire NCBI assembly database. Generates counts of species/organism names in a two column tab separated text file `species_counts_[Month]_[year].txt`  
 
 Troubleshoot: If the program crashes with the following error message:  
-
-	```  
 	species = docsum['DocumentSummarySet']['DocumentSummary'][j]['SpeciesName']
-	IndexError: list index out of range
-	```  
-
+	IndexError: list index out of range  
 This is possibly due to some server issue in NCBI. The script can be re-run without any errors (hopefully).  
-
 Expected output: Two column tab separated text file `species_counts_[Month]_[year].txt`. This may look like:  
-
-	```  
 	Salmonella enterica	281497
 	Escherichia coli	85549
 	Campylobacter jejuni	38238
@@ -26,7 +19,6 @@ Expected output: Two column tab separated text file `species_counts_[Month]_[yea
 	Campylobacter coli	15398
 	.........................
 	.........................  
-	```  
 
 Step 2: Run `idlist_retriever.py`. Usage: `python assemblydb_entrez_query.py email api_key`. 
 This examines `species_counts_[Month]_[year].txt` from step 1 and generates list of assembly UIDs for all species. Since some species are better represented (more assembly counts) in assembly database than others, this script writes UIDs into four separate directories based on counts of assemblies for a particular species  
@@ -37,17 +29,17 @@ This examines `species_counts_[Month]_[year].txt` from step 1 and generates list
 
 Step 3 (Recommended): Run `metadata_print_fileindex.py`. This takes in one of the input directories generated in Step 2, captures NCBI metadata corresponding to different genomic assemmbly metrics and writes the metadata for all files containing assembly UIDs to a desired output directory. Depending on the number of files in a directory, the script takes integer index corresponding to the file number as an argument. This facilitates parallel processing.  
 e.g. if `id_list_interm` dirctory has 10 files, and the desired output directory is `interm_metadata`, the script `metadata_print_fileindex.py` can be used in the following way:  
-- `metadata_print_fileindex.py email api_key id_list_interm interm_metadata 0`  
-- `metadata_print_fileindex.py email api_key id_list_interm interm_metadata 1`  
-- `metadata_print_fileindex.py email api_key id_list_interm interm_metadata 2`  
-- `............................................................................`  
-- `metadata_print_fileindex.py email api_key id_list_interm interm_metadata 9`  
+- `python metadata_print_fileindex.py email api_key id_list_interm interm_metadata 0`  
+- `python metadata_print_fileindex.py email api_key id_list_interm interm_metadata 1`  
+- `python metadata_print_fileindex.py email api_key id_list_interm interm_metadata 2`  
+- `.................................................................................`  
+- `python metadata_print_fileindex.py email api_key id_list_interm interm_metadata 9`  
 
 The parallel processing should be performed in a cluster or a computer with sufficient number of available cores. In theory, `metadata_print_fileindex.py` can be run in as many parallel instances depending on the number of files, but care must be taken so as not to run more than 10 parallel instances. This is because NCBI limits the number of API requests to 10 per second. Over-usage of NCBI API requests may block the user or even an IP of an institution. Should the need for parallel extensive API requests arise, user should contact eutilities@ncbi.nml.nih.gov.
 
 Step 3 (Alternate): Run `metadata_print_filename.py`. This step is almost identical to the recommended step 3 with the only difference arising in providing filename as the last argument instead of life number index.  
 e.g. if one of the files within directory `id_list_interm` is `Acholeplasma_laidlawii_chunk1_idlist.txt`, the usage of this script would be: 
-- `python metadata_print_filename.py id_list_interm interm_metadata Acholeplasma_laidlawii_chunk1_idlist.txt`  
+- `python metadata_print_filename.py email api_key id_list_interm interm_metadata Acholeplasma_laidlawii_chunk1_idlist.txt`  
 
 The output file for the example would be `Acholeplasma_laidlawii_chunk1_metadata.txt`. The alternate step is used for troubleshooting when individual files containing UIDs are not annotated with NCBI metadata for reasons beyond the user's control (NCBI server/connection issues)  
 
