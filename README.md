@@ -7,18 +7,22 @@ The scripts for generating proksee database comprising genomic attributes of NCB
 Step 1: Run `assemblydb_entrez_query.py` . Usage: `python assemblydb_entrez_query.py email api_key`. 
 This runs Entrez API queries to scan for contig assemblies on the entire NCBI assembly database. Generates counts of species/organism names in a two column tab separated text file `species_counts_[Month]_[year].txt`  
 
-Troubleshoot: If the program crashes with the following error message:  
-	species = docsum['DocumentSummarySet']['DocumentSummary'][j]['SpeciesName']
-	IndexError: list index out of range  
+Troubleshoot: If the program crashes with the following error message:
+```  
+species = docsum['DocumentSummarySet']['DocumentSummary'][j]['SpeciesName']
+IndexError: list index out of range
+```    
 This is possibly due to some server issue in NCBI. The script can be re-run without any errors (hopefully).  
 Expected output: Two column tab separated text file `species_counts_[Month]_[year].txt`. This may look like:  
-	Salmonella enterica	281497
-	Escherichia coli	85549
-	Campylobacter jejuni	38238
-	Listeria monocytogenes	34181
-	Campylobacter coli	15398
-	.........................
-	.........................  
+```  	
+Salmonella enterica	281497
+Escherichia coli	85549
+Campylobacter jejuni	38238
+Listeria monocytogenes	34181
+Campylobacter coli	15398
+.........................
+.........................  
+```  
 
 Step 2: Run `idlist_retriever.py`. Usage: `python assemblydb_entrez_query.py email api_key`. 
 This examines `species_counts_[Month]_[year].txt` from step 1 and generates list of assembly UIDs for all species. Since some species are better represented (more assembly counts) in assembly database than others, this script writes UIDs into four separate directories based on counts of assemblies for a particular species  
