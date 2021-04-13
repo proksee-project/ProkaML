@@ -66,4 +66,17 @@ Step 3 (either recommended or alternate) writes a tab separated table `*chunk*_m
 
 The genomic attributes are obtained from `GetMetadata` class in `get_genomic_attributes.py`. A file `Acholeplasma_laidlawii_chunk1_idlist.txt` containing UIDs will generate `Acholeplasma_laidlawii_chunk1_metadata.txt` upon running of Step 3.
 
-Step 4: It is upto the user to use annotated metadata in a species-wise or aggregated manner depending on the downstream analytical strategies. For now, species with > 100 assemblies are arranged as filenames for respective species e.g. major_species_metadata/Campylobacter_jejuni_metadata.txt . There are 34 species with > 1000 assemblies and 169 species with assemblies between 100 and 1000. These 203 species are annotated as separate files. Species with < 100 assemblies are agggregated as concatenated metadata files `intermediate_species_metadata.txt` and `minor_species_metadata.txt`
+Step 4: The annotated metadata files are concatenated. The naming of concatenated files are based on the grouping in step 2. e.g. species with > 1000 assembly records, with UIDs in `id_list_major` and with different metadata annotated fileparts (from step 3) are concatenated as `major_species_metadata.txt`. Overall, there are four concatenated metadata files named as:  
+- `major_species_metadata.txt` for species >= 1000 assemblies each  
+- `large_species_metadata.txt` for species < 1000 but >= 100 assemblies each  
+- `intermediate_species_metadata.txt` for species < 100 but >= 10 assemblies each  
+- `minor_species_metadata.txt` for species < 10 assemblies each  
+In order to conduct analytical strategies with well represented species, the `minor_species_metadata.txt` file containing metadata for species with poor representation in the NCBI assembly database is not used. The other annotated metadata files : `major_species_metadata.txt`, `large_species_metadata.txt` and `intermediate_species_metadata.txt` are concatenated together as `well_represented_species_metadata.txt` with a one-line column header file `metadata_header.txt` appended at the beginning. The resulting file forms the starting point for subsequent analyses.  
+
+## adding additional genomic attributes  
+python gc_content.py EMAIL API_KEY FILE_NAME OUTPUT_DIRECTORY
+
+## preprocessing and normalizing  
+
+## building and exporting machine learning model
+Step 1: 
