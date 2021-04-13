@@ -52,10 +52,28 @@ class GroupedNormalizing():
 		median_log_coverage = dataframe['logcoverage'].median()
 		median_gc_content = dataframe['GCcontent'].median()
 
-		return median_log_n50, median_log_contigcount, median_log_l50, median_log_totlen, median_log_coverage, median_gc_content
+		return dataframe, median_log_n50, median_log_contigcount, median_log_l50, median_log_totlen, median_log_coverage, median_gc_content
 
 	def write_median_statistics(self, dataframe, outfile):
 		outfile.write('{}\t'.format(dataframe.iloc[0, 0]))
-		for i in range(0, len(self.calculate_median_log(dataframe))):
+		for i in range(1, len(self.calculate_median_log(dataframe))):
 			outfile.write('{}\t'.format(self.calculate_median_log(dataframe)[i]))
 		outfile.write('\n')
+
+	def normalize_dataframe(self, dataframe):
+		dataframe = self.calculate_median_log(dataframe)[0]
+		median_log_n50 = self.calculate_median_log(dataframe)[1]
+		median_log_contigcount = self.calculate_median_log(dataframe)[2]
+		median_log_l50 = self.calculate_median_log(dataframe)[3]
+		median_log_totlen = self.calculate_median_log(dataframe)[4]
+		median_log_coverage = self.calculate_median_log(dataframe)[5]
+		median_gc_content = self.calculate_median_log(dataframe)[6]
+
+		dataframe = dataframe.assign(logn50_normalized = dataframe['logn50']- median_log_n50)
+		dataframe = dataframe.assign(logcontigcount_normalized = dataframe['logcontigcount']- median_log_contigcount)
+		dataframe = dataframe.assign(logl50_normalized = dataframe['logl50']- median_log_l50)
+		dataframe = dataframe.assign(logtotlen_normalized = dataframe['logtotlen']- median_log_totlen)
+		dataframe = dataframe.assign(logcoverage_normalized = dataframe['logcoverage']- median_log_coverage)
+		dataframe = dataframe.assign(gccontent_normalized = dataframe['GCcontent']- median_gc_content)
+
+		return dataframe
