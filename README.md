@@ -74,9 +74,12 @@ Step 4: The annotated metadata files are concatenated. The naming of concatenate
 In order to conduct analytical strategies with well represented species, the `minor_species_metadata.txt` file containing metadata for species with poor representation in the NCBI assembly database is not used. The other annotated metadata files : `major_species_metadata.txt`, `large_species_metadata.txt` and `intermediate_species_metadata.txt` are concatenated together as `well_represented_species_metadata.txt` with a one-line column header file `metadata_header.txt` appended at the beginning. The resulting file forms the starting point for subsequent analyses.  
 
 ## adding additional genomic attributes  
-python gc_content.py EMAIL API_KEY FILE_NAME OUTPUT_DIRECTORY
+Add genomic attributes to metadata matrix. Currently only gc content can be added.  
+Usage: `python gc_content.py EMAIL API_KEY FILE_NAME OUTPUT_DIRECTORY`
 
 ## preprocessing and normalizing  
+`clean_metadata.py` organizes assembly methods and sequencing technology using regular expressions. Subsequently rows for long read data are identified from assembly methods and sequencing technology and excluded.   
+`preprocess_metadata.py` performs species specific grouped normalizing of metadata, firstly by calculating species specific medians (or medians of logarithms) of genomic attributes of interest and then normalizing the genomic attributes with respect to their species specific median computed values.  
 
 ## building and exporting machine learning model
-Step 1: 
+`cmd_machine_learning.py` subsets the dataframe with curated labels (RefSeq included/excluded) and fits random forest classifier models on curated data. Models are evaluated over a 10 fold cross validation and the best performing model is output as a joblib object for subsequent analyses

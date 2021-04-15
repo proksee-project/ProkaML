@@ -88,7 +88,7 @@ def main():
     filepath = '{}/well_represented_species_metadata_normalized.txt'.format(str(START_DIR))
     inclusion, exclusion = label_curation(filepath)
     classifiers_and_scores = iterating_random_forest_models(inclusion, exclusion)
-    best_fit_model = evaluate_best_model(classifiers_and_scores)[0]
+    best_fit_model = evaluate_best_model(classifiers_and_scores)
     joblib.dump(best_fit_model, "random_forest_n50_contigcount_l50_totlen_gccontent.joblib")
 
 if __name__ == "__main__":
