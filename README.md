@@ -75,8 +75,12 @@ In order to conduct analytical strategies with well represented species, the `mi
 
 ## adding additional genomic attributes  
 The scripts for adding custom genomic attributes are in the directory `add_genomic_attributes`.  
+
 Usage: `python add_genomic_attributes.py EMAIL API_KEY FILE_NAME OUTPUT_DIRECTORY`  
-This program takes the metadata file generated from the final step of **proksee-database generation**, computes genomic attributes of interest for every assembly and writes the genomic attributes as additional columns to an output spreadsheet. For example, the file `well_represented_species_metadata.txt` will be processed and re-written as `well_represented_species_metadata_added_attributes.txt`. Other inputs for the script `add_genomic_attributes.py` include email address, NCBI api key and a user-desired output directory for downloading intermediate files. Currently, the only additional calculated attribute is overall GC content, which is the fraction of G or C bases of all nucleotide bases of an assembly. GC content is calculated from `gc_content.py`. Other genomic attributes of interest are in development phase and may be added later. 
+
+This program takes the metadata file generated from the final step of **proksee-database generation**, computes genomic attributes of interest for every assembly and writes the genomic attributes as additional columns to an output spreadsheet. For example, the file `well_represented_species_metadata.txt` will be processed and re-written as `well_represented_species_metadata_added_attributes.txt`.  
+Other user inputs for the script `add_genomic_attributes.py` must include email address, NCBI api key and a user-desired output directory for downloading intermediate files.  
+Currently, the only additional attribute is overall GC content, which is the fraction of G or C bases of all nucleotide bases of an assembly. GC content is calculated from `gc_content.py`. Other genomic attributes of interest are in development phase and may be added later. 
 
 ## preprocessing and normalizing  
 `clean_metadata.py` organizes assembly methods and sequencing technology using regular expressions. Subsequently rows for long read data are identified from assembly methods and sequencing technology and excluded.   
