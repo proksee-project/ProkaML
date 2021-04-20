@@ -12,17 +12,16 @@ CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 '''
 
-import pandas as pd
 import numpy as np
 import os
-import sys
-import re 
+import re
 from pathlib import Path
 
 START_DIR = Path(__file__).resolve().parents[1]
 MEDIAN_DATABASE_FILE = open(os.path.join(START_DIR, 'species_median_log_metrics.txt'), 'w')
 MEDIAN_DATABASE_FILE.write('Species\tlogn50\tlogcontigcount\tlogl50\tlogtotlen\tlogcoverage\tgccontent\n')
 NORMALIZED_DATABASE_FILE = open(os.path.join(START_DIR, 'well_represented_species_metadata_normalized.txt'), 'w')
+
 
 class SpeciesNormalization():
     """
@@ -52,7 +51,7 @@ class SpeciesNormalization():
         """
 
         # List of regular expressions to exclude invalid species' taxonomy names, can be expanded
-        exclude_species_patterns = ['uncultured', 
+        exclude_species_patterns = ['uncultured',
                                     'metagenome',
                                     '^bacterium$'
                                     ]
@@ -74,15 +73,15 @@ class SpeciesNormalization():
             dataframe (obj): dataframe with appended columns of species specific logarithm calculated attributes
         """
 
-        dataframe = dataframe.assign(logn50=round(np.log10(dataframe['ContigN50']),3))
-        dataframe = dataframe.assign(logcontigcount=round(np.log10(dataframe['Contig count']),3))
-        dataframe = dataframe.assign(logl50=round(np.log10(dataframe['ContigL50']),3))
-        dataframe = dataframe.assign(logtotlen=round(np.log10(dataframe['Total length']),3))
+        dataframe = dataframe.assign(logn50=round(np.log10(dataframe['ContigN50']), 3))
+        dataframe = dataframe.assign(logcontigcount=round(np.log10(dataframe['Contig count']), 3))
+        dataframe = dataframe.assign(logl50=round(np.log10(dataframe['ContigL50']), 3))
+        dataframe = dataframe.assign(logtotlen=round(np.log10(dataframe['Total length']), 3))
 
         # Adding column 'adj coverage' to allow logarithm calculations of assemblies with zero coverage
         dataframe.loc[dataframe['Genome Coverage'] > 0, 'adj coverage'] = dataframe['Genome Coverage']
         dataframe.loc[dataframe['Genome Coverage'] == 0, 'adj coverage'] = 0.1
-        dataframe = dataframe.assign(logcoverage=round(np.log10(dataframe['adj coverage']),3))
+        dataframe = dataframe.assign(logcoverage=round(np.log10(dataframe['adj coverage']), 3))
 
         # Add column 'GCcontent_imputed' to replace missing GC values with species specific medians
         dataframe.loc[dataframe['GCcontent'].notnull(), 'GCcontent_imputed'] = dataframe['GCcontent']
@@ -211,12 +210,18 @@ class SpeciesNormalization():
             dataframe (obj): dataframe with appended columns of normalized attributes
         """
 
-        dataframe = dataframe.assign(logn50_normalized = dataframe['logn50']- self.get_median_log_n50(dataframe))
-        dataframe = dataframe.assign(logcontigcount_normalized = dataframe['logcontigcount']- self.get_median_log_contigcount(dataframe))
-        dataframe = dataframe.assign(logl50_normalized = dataframe['logl50']- self.get_median_log_l50(dataframe))
-        dataframe = dataframe.assign(logtotlen_normalized = dataframe['logtotlen']- self.get_median_log_totlen(dataframe))
-        dataframe = dataframe.assign(logcoverage_normalized = dataframe['logcoverage']- self.get_median_log_coverage(dataframe))
-        dataframe = dataframe.assign(gccontent_normalized = dataframe['GCcontent_imputed']- self.get_median_gc_content(dataframe))
+        dataframe = dataframe.assign(logn50_normalized=dataframe['logn50'] -
+                                     self.get_median_log_n50(dataframe))
+        dataframe = dataframe.assign(logcontigcount_normalized=dataframe['logcontigcount'] -
+                                     self.get_median_log_contigcount(dataframe))
+        dataframe = dataframe.assign(logl50_normalized=dataframe['logl50'] -
+                                     self.get_median_log_l50(dataframe))
+        dataframe = dataframe.assign(logtotlen_normalized=dataframe['logtotlen'] -
+                                     self.get_median_log_totlen(dataframe))
+        dataframe = dataframe.assign(logcoverage_normalized=dataframe['logcoverage'] -
+                                     self.get_median_log_coverage(dataframe))
+        dataframe = dataframe.assign(gccontent_normalized=dataframe['GCcontent_imputed'] -
+                                     self.get_median_gc_content(dataframe))
 
         return dataframe
 
@@ -242,5 +247,6 @@ class SpeciesNormalization():
             else:
                 header = False
 
-            species_normalized_dataframe.to_csv(NORMALIZED_DATABASE_FILE, sep='\t', mode='a', header=header, index=False)
+            species_normalized_dataframe.to_csv(NORMALIZED_DATABASE_FILE, sep='\t', mode='a',
+                                                header=header, index=False)
             species_count += 1

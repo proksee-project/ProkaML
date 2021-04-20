@@ -13,10 +13,7 @@ specific language governing permissions and limitations under the License.
 '''
 
 import pandas as pd
-import numpy as np
-import re
-import os
-from pathlib import Path 
+from pathlib import Path
 from clean_metadata import OrganizeMetadata
 from preprocess_metadata import SpeciesNormalization
 
