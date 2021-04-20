@@ -83,8 +83,11 @@ Other user inputs for the script `add_genomic_attributes.py` must include email 
 Currently, the only additional attribute is overall GC content, which is the fraction of G or C bases of all nucleotide bases of an assembly. GC content is calculated from `gc_content.py`. Other genomic attributes of interest are in development phase and may be added later. 
 
 ## preprocessing and normalizing  
-`clean_metadata.py` organizes assembly methods and sequencing technology using regular expressions. Subsequently rows for long read data are identified from assembly methods and sequencing technology and excluded.   
-`preprocess_metadata.py` performs species specific grouped normalizing of metadata, firstly by calculating species specific medians (or medians of logarithms) of genomic attributes of interest and then normalizing the genomic attributes with respect to their species specific median computed values.  
+The scripts for preprocessing and normalizing assembly metadata are in the directory `preprocessing`.  
 
-## building and exporting machine learning model
+Usage: `python cmd_preprocess_normalize.py`  
+
+The script `cmd_preprocess_normalize.py` imports functions from `clean_metadata.py` and `preprocess_metadata.py`. Assembly methods and sequencing technologies accompanied with assembly submissions to NCBI database are highly heterogeneous, with possible groupings of such data further impeded by different version specifications, inconsistencies in spellings and non-uniformity in uppercase/lowercase representations. `clean_metadata.py` organizes the assembly methods and sequencing technologies using regular expressions and subsequently uses the organized metadata information to filter out assemblies associated with long read assemblies. `preprocess_metadata.py` processes assembly metadata for short read assemblies and generates two output files. The first file, `species_median_log_metrics.txt` contains species specific median values (or logarithm of median values) of different assembly attributes (n50, number of contigs, l50, assembly length, genome coverage and gc content). The second file, `well_represented_species_metadata_normalized.txt` serves as an extension to the assembly metadata file from previous step with median normalized assembly attributes calculated for every assembly row and appended as additional columns. The file `well_represented_species_metadata_normalized.txt` also serves as input data for generating machine learning models.  
+
+## machine learning of assembly quality control (QC)
 `cmd_machine_learning.py` subsets the dataframe with curated labels (RefSeq included/excluded) and fits random forest classifier models on curated data. Models are evaluated over a 10 fold cross validation and the best performing model is output as a joblib object for subsequent analyses
