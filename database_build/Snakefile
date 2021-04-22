@@ -1,0 +1,18 @@
+rule species_count:
+    shell:
+	    """
+		python assemblydb_entrez_query.py arnab22.iitkgp@gmail.com 51efc5e252e63fae1155a67c802bdd8e3e09
+		python idlist_retriever.py arnab22.iitkgp@gmail.com 51efc5e252e63fae1155a67c802bdd8e3e09
+		"""
+
+"""
+rule obtain_metadata:
+    input:
+        "idlist_interm"
+        "interm_metadata"
+        "{filename}_idlist.txt."
+    output:
+        "{filename}_metadata.txt"
+    shell:
+        "python metadata_print_filename.py arnab22.iitkgp@gmail.com 51efc5e252e63fae1155a67c802bdd8e3e09 {input}"
+"""

@@ -1,0 +1,20 @@
+(snakemake) $ snakemake --cores 1
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+        count   jobs
+        1       species_count
+        1
+Select jobs to execute...
+
+[Thu Apr 22 09:40:16 2021]
+rule species_count:
+    jobid: 0
+
+10000 document summaries processed. Species dictionary has 530 records
+20000 document summaries processed. Species dictionary has 1044 records
+30000 document summaries processed. Species dictionary has 1535 records
+.......................................................................
+.......................................................................
