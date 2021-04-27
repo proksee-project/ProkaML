@@ -1,7 +1,7 @@
 '''
 Copyright:
 
-University of Manitoba & National Microbiology Laboratory, Canada, 2020
+University of Manitoba & National Microbiology Laboratory, Canada, 2021
 Written by: Arnab Saha Mandal
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
@@ -24,7 +24,7 @@ import gzip
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 
 
-class CalculateGCContent():
+class GCContentCalculate():
     """
     A class representing calculation of overall GC content of an assembly
 
@@ -60,28 +60,38 @@ class CalculateGCContent():
         RETURNS
             df (dataframe), genbank_id_list (list): tuple of dataframe and list of Genbank accession IDs
         """
-
+        GENBANK_ID = 'Genbank Accession'
         df = pd.read_csv(self.filename, sep='\t', keep_default_na=False)
-        genbank_id_list = df['Genbank Accession'].to_list()
+        genbank_id_list = df[GENBANK_ID].to_list()
 
         return df, genbank_id_list
 
     def download_assembly(self, genbank_id):
         """
-        Programs the download link of fasta assembly and attempts to download it
+        Attempts to download genomic assembly using NCBI's API
 
         RETURNS
-            assembly_file_path_local (str): local path to the downloaded fasta assembly
+            assembly_file_path_local (str): local path to the downloaded assembly
         """
+
+        # Constants for API queries
+        DATABASE = 'assembly'
+        ID_LIST = 'IdList'
+        DOCUMENT_SUMMARY_SET = 'DocumentSummarySet'
+        DOCUMENT_SUMMARY = 'DocumentSummary'
+        INDEX = 0
+        FTP_PATH_GENBANK = 'FtpPath_GenBank'
+        VALIDATE = False
+        ASSEMBLY_FILE_EXTENSION = '_genomic.fna.gz'
 
         try:
             # Program download link of assembly file
-            handle = Entrez.esearch(db="assembly", term=genbank_id)
+            handle = Entrez.esearch(db=DATABASE, term=genbank_id)
             record = Entrez.read(handle)
-            handle2 = Entrez.esummary(db="assembly", id=record['IdList'])
-            record2 = Entrez.read(handle2, validate=False)
-            genbank_dir = record2['DocumentSummarySet']['DocumentSummary'][0]['FtpPath_GenBank']
-            assembly_file = os.path.basename(genbank_dir) + '_genomic.fna.gz'
+            handle2 = Entrez.esummary(db=DATABASE, id=record[ID_LIST])
+            record2 = Entrez.read(handle2, validate=VALIDATE)
+            genbank_dir = record2[DOCUMENT_SUMMARY_SET][DOCUMENT_SUMMARY][INDEX][FTP_PATH_GENBANK]
+            assembly_file = os.path.basename(genbank_dir) + ASSEMBLY_FILE_EXTENSION
             assembly_file_link = os.path.join(genbank_dir, assembly_file)
 
             # Define path to download the assembly file
@@ -125,7 +135,7 @@ class CalculateGCContent():
         """
 
         if assembly_file_path_local == 'NA':
-            overall_gc_content = 'NA'
+            overall_gc_content = float('NaN')
 
         else:
             gc_content = 0
@@ -143,11 +153,18 @@ class CalculateGCContent():
 
             except Exception:
                 # Accounting for zlib file opening errors
-                overall_gc_content = 'NA'
+                overall_gc_content = float('NaN')
 
         return overall_gc_content
 
     def append_gc_content(self):
+        """
+        GC content of respective assemblies are appended as an additional column
+
+        POST
+            Creates file with additional column of GC content
+        """
+
         Entrez.email = self.email
         Entrez.api_key = self.api_key
 
@@ -165,12 +182,9 @@ class CalculateGCContent():
 
             # Remove the downloaded file. This try except can be commented out/removed if assemblies do not
             # consume much hard drive space
-            try:
+            if assembly_file_path_local != 'NA':
                 os.remove(assembly_file_path_local)
                 print('{} assembly file removed'.format(genbank_id_list[i]))
-
-            except FileNotFoundError:
-                pass
 
         # Write the list of GC content as a separate column to output file
         dataframe['GCcontent'] = gc_content_list

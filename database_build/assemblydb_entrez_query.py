@@ -1,7 +1,7 @@
 '''
 Copyright:
 
-University of Manitoba & National Microbiology Laboratory, Canada, 2020
+University of Manitoba & National Microbiology Laboratory, Canada, 2021
 
 Written by: Arnab Saha Mandal
 
@@ -21,9 +21,10 @@ from Bio import Entrez
 from collections import defaultdict
 import sys
 from datetime import date
+import argparse
 
 
-def count_assem_records(email=None, api_key=None):
+def count_assem_records(email, api_key):
 
     '''Declaring email and api key for making NCBI Entrez API calls'''
     Entrez.email = email
@@ -36,14 +37,14 @@ def count_assem_records(email=None, api_key=None):
         num = record['Count']  # num is approx 620k as of Sept 2020
 
     except Exception:
-        raise Exception('Either internet failure OR invalid/incorrect ordering \
-            of input parameters OR some unexpected failure..Exiting...')
+        raise Exception('Either internet failure OR invalid/incorrect ordering ' +
+            'of input parameters (email, API key) OR some unexpected failure..Exiting...')
 
         '''Returning total number of records'''
     return num
 
 
-def retrieve_assem_records(num=None):
+def retrieve_assem_records(num):
     '''Retrieving all records of NCBI contig assemblies'''
     handle1 = Entrez.esearch(db="assembly", term="contig[Assembly Level]", retmax=num)
     record1 = Entrez.read(handle1)
@@ -86,7 +87,7 @@ def retrieve_assem_records(num=None):
     return species_dicn
 
 
-def esummary(idlist_batch=None, species_dicn=None):
+def esummary(idlist_batch, species_dicn):
     '''Calling Entrez esummary to generate xml document summary'''
     esum = Entrez.esummary(db="assembly", id=",".join(idlist_batch))
 
@@ -99,7 +100,7 @@ def esummary(idlist_batch=None, species_dicn=None):
         species_dicn[species] += 1
 
 
-def species_dicn_write(species_dicn=None):
+def species_dicn_write(species_dicn):
 
     '''Writing species dictionary (sorted by descending occurences) to output file stamped with month and year'''
     month_year_stamp = date.today().strftime("%b_%Y")
@@ -115,27 +116,31 @@ def species_dicn_write(species_dicn=None):
 
 
 def main():
-    if len(sys.argv) != 3:
-        sys.exit('''
-        Command usage: python assemblydb_entrez_query.py EMAIL NCBI_API_KEY.
-        Need to pass 2 arguments corresponding to your email and ncbi api key
-        ''')
 
-    else:
-        email = sys.argv[1]
-        api_key = sys.argv[2]
+    my_parser = argparse.ArgumentParser(usage='python %(prog)s [-h] email api_key',
+                                        description='Runs Entrez API queries on NCBI assembly database')
+    my_parser.add_argument('email',
+                           type=str,
+                           help='user email address')
+    my_parser.add_argument('api_key',
+                           type=str,
+                           help='NCBI user API key')
+    args = my_parser.parse_args()
 
-        try:
-            '''Obtaining total counts of assembly records'''
-            num = count_assem_records(email, api_key)
-        except Exception as e:
-            sys.exit(e)
+    email = args.email
+    api_key = args.api_key
 
-        ''''Processing assembly records to create species dictionary'''
-        species_dicn = retrieve_assem_records(num)
+    try:
+        '''Obtaining total counts of assembly records'''
+        num = count_assem_records(email, api_key)
+    except Exception as e:
+        sys.exit(e)
 
-        '''Writing species dictionary to output'''
-        print(species_dicn_write(species_dicn))
+    ''''Processing assembly records to create species dictionary'''
+    species_dicn = retrieve_assem_records(num)
+
+    '''Writing species dictionary to output'''
+    print(species_dicn_write(species_dicn))
 
 
 if __name__ == '__main__':

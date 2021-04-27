@@ -1,7 +1,7 @@
 '''
 Copyright:
 
-University of Manitoba & National Microbiology Laboratory, Canada, 2020
+University of Manitoba & National Microbiology Laboratory, Canada, 2021
 
 Written by: Arnab Saha Mandal
 
@@ -23,12 +23,13 @@ import urllib.error
 import re
 
 
-class GetMetadata():
+class AttributeMetadata():
     """
     A class for obtaining genomic assembly attributes from NCBI
 
     ATTRIBUTES
         idlist (list): list of NCBI assembly UIDs
+        document_summary (dict): nested biopython dictionary mapping assembly UIDs to genomic attributes
     """
 
     def __init__(self, idlist):
@@ -98,6 +99,15 @@ class GetMetadata():
         return metadata
 
     def get_species_name(self, document_dict):
+        """
+        Obtains species name for an assembly from NCBI
+
+        PARAMETERS:
+            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+
+        RETURNS:
+            species_name (str): the species name for an assembly from NCBI
+        """
 
         if 'SpeciesName' in document_dict:
             species_name = document_dict['SpeciesName']
@@ -108,6 +118,15 @@ class GetMetadata():
         return species_name
 
     def get_species_strain(self, document_dict):
+        """
+        Obtains species strain/isolate for an assembly from NCBI
+
+        PARAMETERS:
+            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+
+        RETURNS:
+            strain (str): the species strain/isolate (if applicable) for an assembly from NCBI
+        """
 
         if 'Biosource' in document_dict:
             if document_dict['Biosource']['InfraspeciesList']:
@@ -128,6 +147,15 @@ class GetMetadata():
         return strain
 
     def get_assembly_id(self, document_dict):
+        """
+        Obtains assembly ID for an assembly from NCBI
+
+        PARAMETERS:
+            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+
+        RETURNS:
+            assembly_id (str): the assembly ID for an assembly from NCBI
+        """
 
         if 'AssemblyName' in document_dict:
             assembly_id = document_dict['AssemblyName']
@@ -138,6 +166,15 @@ class GetMetadata():
         return assembly_id
 
     def get_genbank_id(self, document_dict):
+        """
+        Obtains Genbank ID for an assembly from NCBI
+
+        PARAMETERS:
+            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+
+        RETURNS:
+            genbank_id (str): the Genbank ID for an assembly from NCBI
+        """
 
         if 'Synonym' in document_dict:
             if document_dict['Synonym']['Genbank'] == '':
@@ -152,6 +189,15 @@ class GetMetadata():
         return genbank_id
 
     def get_refseq_id(self, document_dict):
+        """
+        Obtains RefSeq Accession ID for an assembly from NCBI
+
+        PARAMETERS:
+            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+
+        RETURNS:
+            refseq_id (str): the RefSeq Accession ID (if applicable) for an assembly from NCBI
+        """
 
         if 'Synonym' in document_dict:
             if document_dict['Synonym']['RefSeq'] == '':
@@ -166,6 +212,15 @@ class GetMetadata():
         return refseq_id
 
     def get_genome_coverage(self, document_dict):
+        """
+        Obtains genomic coverage for an assembly from NCBI
+
+        PARAMETERS:
+            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+
+        RETURNS:
+            genome_coverage (float): the genomic coverage for an assembly from NCBI
+        """
 
         if 'Coverage' in document_dict:
             genome_coverage = document_dict['Coverage']
@@ -176,6 +231,15 @@ class GetMetadata():
         return genome_coverage
 
     def get_submission_date(self, document_dict):
+        """
+        Obtains submission date for an assembly from NCBI
+
+        PARAMETERS:
+            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+
+        RETURNS:
+            submission_date (str): the submission date for an assembly from NCBI
+        """
 
         if 'SubmissionDate' in document_dict:
             submission_date = document_dict['SubmissionDate']
@@ -186,6 +250,15 @@ class GetMetadata():
         return submission_date
 
     def get_last_update_date(self, document_dict):
+        """
+        Obtains last updated date for an assembly from NCBI
+
+        PARAMETERS:
+            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+
+        RETURNS:
+            last_update_date (str): the last update date for an assembly from NCBI
+        """
 
         if 'LastUpdateDate' in document_dict:
             last_update_date = document_dict['LastUpdateDate']
@@ -196,6 +269,15 @@ class GetMetadata():
         return last_update_date
 
     def get_refseq_exclusion_reason(self, document_dict):
+        """
+        Obtains RefSeq exclusion reason/s (if applicable) for an assembly from NCBI
+
+        PARAMETERS:
+            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+
+        RETURNS:
+            refseq_excl (str): RefSeq exclusion reason/s (if applicable) for an assembly from NCBI
+        """
 
         if 'ExclFromRefSeq' in document_dict:
             refseq_excl = document_dict['ExclFromRefSeq']
@@ -206,16 +288,34 @@ class GetMetadata():
         return refseq_excl
 
     def get_n50(self, document_dict):
+        """
+        Obtains N50 for an assembly from NCBI
+
+        PARAMETERS:
+            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+
+        RETURNS:
+            N50 (int): the N50 for an assembly from NCBI
+        """
 
         if 'ContigN50' in document_dict:
             n50 = document_dict['ContigN50']
 
         else:
-            n50 = 'NA'
+            n50 = float('NaN')
 
         return n50
 
     def get_num_contigs(self, document_dict):
+        """
+        Obtains number of contigs for an assembly from NCBI
+
+        PARAMETERS:
+            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+
+        RETURNS:
+            num_contigs (int): the number of contigs for an assembly from NCBI
+        """
 
         if 'Meta' in document_dict:
             num_contigs_regex = re.search(r'contig_count.+?(\d+)<', document_dict['Meta'])
@@ -223,14 +323,23 @@ class GetMetadata():
                 num_contigs = num_contigs_regex.group(1)
 
             else:
-                num_contigs = 'NA'
+                num_contigs = float('NaN')
 
         else:
-            num_contigs = 'NA'
+            num_contigs = float('NaN')
 
         return num_contigs
 
     def get_l50(self, document_dict):
+        """
+        Obtains L50 for an assembly from NCBI
+
+        PARAMETERS:
+            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+
+        RETURNS:
+            l50 (int): the L50 for an assembly from NCBI
+        """
 
         if 'Meta' in document_dict:
             l50_regex = re.search(r'contig_l50.+?(\d+)<', document_dict['Meta'])
@@ -238,14 +347,23 @@ class GetMetadata():
                 l50 = l50_regex.group(1)
 
             else:
-                l50 = 'NA'
+                l50 = float('NaN')
 
         else:
-            l50 = 'NA'
+            l50 = float('NaN')
 
         return l50
 
     def get_length(self, document_dict):
+        """
+        Obtains assembly length from NCBI
+
+        PARAMETERS:
+            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+
+        RETURNS:
+            length (int): the assembly length from NCBI
+        """
 
         if 'Meta' in document_dict:
             length_regex = re.search(r'total_length.+?(\d+)<', document_dict['Meta'])
@@ -253,26 +371,39 @@ class GetMetadata():
                 length = length_regex.group(1)
 
             else:
-                length = 'NA'
+                length = float('NaN')
 
         else:
-            length = 'NA'
+            length = float('NaN')
 
         return length
 
     def get_assembly_report(self, document_dict):
+        """
+        Obtains assembly report length from NCBI
 
-        if 'FtpPath_Assembly_rpt' in document_dict and document_dict['FtpPath_Assembly_rpt'] != '':
-            assembly_report_url = document_dict['FtpPath_Assembly_rpt']
+        PARAMETERS:
+            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+
+        RETURNS:
+            assembly_report_lines_string (str): the assembly report from NCBI
+        """
+
+        ASSEMBLY_REPORT_KEY = 'FtpPath_Assembly_rpt'
+        TIMEOUT = 100
+        JOIN_CHARACTER = ';'
+
+        if ASSEMBLY_REPORT_KEY in document_dict and document_dict[ASSEMBLY_REPORT_KEY] != '':
+            assembly_report_url = document_dict[ASSEMBLY_REPORT_KEY]
 
             try:
-                assembly_url_request = urllib.request.urlopen(assembly_report_url, timeout=100)
+                assembly_url_request = urllib.request.urlopen(assembly_report_url, timeout=TIMEOUT)
 
                 # read() generates a string
                 # decode() is applicable on a string
                 # splitlines() removes \r and \n characters, generates a list
                 assembly_report_lines_list = assembly_url_request.read().decode('utf-8').splitlines()
-                assembly_report_lines_string = ';'.join(assembly_report_lines_list)
+                assembly_report_lines_string = JOIN_CHARACTER.join(assembly_assembly_report_lines_list)
 
             except (urllib.error.HTTPError, urllib.error.URLError):
                 """
@@ -288,6 +419,15 @@ class GetMetadata():
         return assembly_report_lines_string
 
     def get_assembler(self, assembly_report_lines_string):
+        """
+        Obtains assembly method from NCBI
+
+        PARAMETERS:
+            assembly_report_lines_string (str): the assembly report from NCBI
+
+        RETURNS:
+            assembler (str): the assembly method from NCBI
+        """
 
         if assembly_report_lines_string == 'NA':
             assembler = 'NA'
@@ -303,6 +443,15 @@ class GetMetadata():
         return assembler
 
     def get_sequencing_platform(self, assembly_report_lines_string):
+        """
+        Obtains sequencing platform from NCBI
+
+        PARAMETERS:
+            assembly_report_lines_string (str): the assembly report from NCBI
+
+        RETURNS:
+            sequencing_platform (str): the sequencing platform for an assembly from NCBI
+        """
 
         if assembly_report_lines_string == 'NA':
             sequencing_platform = 'NA'

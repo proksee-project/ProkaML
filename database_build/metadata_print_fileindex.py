@@ -20,7 +20,7 @@ specific language governing permissions and limitations under the License.
 import os
 import sys
 from Bio import Entrez
-from get_genomic_metadata import GetMetadata
+from get_genomic_metadata import AttributeMetadata
 
 if len(sys.argv) != 6:
     sys.exit('''
@@ -49,5 +49,5 @@ else:
 
     Entrez.email = email
     Entrez.api_key = api_key
-    idlist_metadata = GetMetadata(idlist)
+    idlist_metadata = AttributeMetadata(idlist)
     idlist_metadata.print_genomic_metadata(output_file)

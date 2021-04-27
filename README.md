@@ -2,7 +2,7 @@
 Reference library for microorganisms with different genome assembly metrics and statistics
 
 ## proksee-database generation 
-The scripts for generating proksee database comprising genomic attributes of NCBI contig assemblies are in the directory `database_build`. The scripts run biopython API queries on the NCBI database and therefore require the user to provide an API key corresponding to their account. If you dont have an NCBI api key, create an account at https://www.ncbi.nlm.nih.gov/account/ using your email. Once you sign in, click on the top right corner on your email id. This will redirect you to a new page where you can find your api key. You will need to use this api key for most of the scripts within `database_build` directory.  
+The scripts for generating proksee database comprising genomic attributes of NCBI contig assemblies are in the directory `database_build`. The scripts run biopython API queries on the NCBI database and therefore require the user to provide an API key corresponding to their account. If you dont have an NCBI API key, visit the NCBI login [page](https://www.ncbi.nlm.nih.gov/account/) and create an account using your email. Once you sign in, click on the top right corner on your email ID. This will redirect you to a new page where you can find your API key. You will need to use this API key for most of the scripts within `database_build` directory.  
 
 Step 1: Run `assemblydb_entrez_query.py` . Usage: `python assemblydb_entrez_query.py email api_key`. 
 This runs Entrez API queries to scan for contig assemblies on the entire NCBI assembly database. Generates counts of species/organism names in a two column tab separated text file `species_counts_[Month]_[year].txt`  
@@ -45,7 +45,7 @@ Step 3 (Alternate): Run `metadata_print_filename.py`. This step is almost identi
 e.g. if one of the files within directory `id_list_interm` is `Acholeplasma_laidlawii_chunk1_idlist.txt`, the usage of this script would be: 
 - `python metadata_print_filename.py email api_key id_list_interm interm_metadata Acholeplasma_laidlawii_chunk1_idlist.txt`  
 
-The output file for the example would be `Acholeplasma_laidlawii_chunk1_metadata.txt`. The alternate step is used for troubleshooting when individual files containing UIDs are not annotated with NCBI metadata for reasons beyond the user's control (NCBI server/connection issues)  
+The output file for the example would be `Acholeplasma_laidlawii_chunk1_metadata.txt`. The alternate step is used for troubleshooting when individual files containing UIDs are not annotated with NCBI metadata for reasons beyond the user's control (NCBI server/connection issues).  
 
 Step 3 (either recommended or alternate) writes a tab separated table `*chunk*_metadata.txt` with rows corresponding to every assembly within a `*chunk*_idlist.txt` file and columns corresponding to the following genomic attributes:  
 - Species name
@@ -64,14 +64,14 @@ Step 3 (either recommended or alternate) writes a tab separated table `*chunk*_m
 - Assembly method
 - Sequencing technology  
 
-The genomic attributes are obtained from `GetMetadata` class in `get_genomic_attributes.py`. A file `Acholeplasma_laidlawii_chunk1_idlist.txt` containing UIDs will generate `Acholeplasma_laidlawii_chunk1_metadata.txt` upon running of Step 3.
+The genomic attributes are obtained from the `get_genomic_metadata.py` script from the `AttributeMetadata` class. A file named `Acholeplasma_laidlawii_chunk1_idlist.txt` containing UIDs will generate `Acholeplasma_laidlawii_chunk1_metadata.txt` upon the running of Step 3.
 
-Step 4: The annotated metadata files are concatenated. The naming of concatenated files are based on the grouping in step 2. e.g. species with > 1000 assembly records, with UIDs in `id_list_major` and with different metadata annotated fileparts (from step 3) are concatenated as `major_species_metadata.txt`. Overall, there are four concatenated metadata files named as:  
+Step 4: The annotated metadata files are concatenated. The naming of concatenated files is based on the grouping in Step 2. *E.g.* species with >= 1000 assembly records, with UIDs in `id_list_major` and with different metadata annotated fileparts (from Step 3) are concatenated as `major_species_metadata.txt`. Overall, there are four concatenated metadata files named as:  
 - `major_species_metadata.txt` for species >= 1000 assemblies each  
 - `large_species_metadata.txt` for species < 1000 but >= 100 assemblies each  
 - `intermediate_species_metadata.txt` for species < 100 but >= 10 assemblies each  
 - `minor_species_metadata.txt` for species < 10 assemblies each  
-In order to conduct analytical strategies with well represented species, the `minor_species_metadata.txt` file containing metadata for species with poor representation in the NCBI assembly database is not used. The other annotated metadata files : `major_species_metadata.txt`, `large_species_metadata.txt` and `intermediate_species_metadata.txt` are concatenated together as `well_represented_species_metadata.txt` with a one-line column header file `metadata_header.txt` appended at the beginning. The resulting file forms the starting point for subsequent analyses.  
+In order to conduct analytical strategies with well represented species, the `minor_species_metadata.txt` file containing metadata for species with poor representation in the NCBI assembly database is not used. The other annotated metadata files: `major_species_metadata.txt`, `large_species_metadata.txt` and `intermediate_species_metadata.txt` are concatenated together as `well_represented_species_metadata.txt` with a one-line column header file `metadata_header.txt` appended at the beginning. The resulting file forms the starting point for subsequent analyses.  
 
 ## adding additional genomic attributes  
 The scripts for adding custom genomic attributes are in the directory `add_genomic_attributes`.  
@@ -79,7 +79,7 @@ The scripts for adding custom genomic attributes are in the directory `add_genom
 Usage: `python add_genomic_attributes.py EMAIL API_KEY FILE_NAME OUTPUT_DIRECTORY`  
 
 This program takes the metadata file generated from the final step of **proksee-database generation**, computes genomic attributes of interest for every assembly and writes the genomic attributes as additional columns to an output spreadsheet. For example, the file `well_represented_species_metadata.txt` will be processed and re-written as `well_represented_species_metadata_added_attributes.txt`.  
-Other user inputs for the script `add_genomic_attributes.py` must include email address, NCBI api key and a user-desired output directory for downloading intermediate files.  
+Other user inputs for the script `add_genomic_attributes.py` must include email address, NCBI API key and a user-desired output directory for downloading intermediate files.  
 Currently, the only additional attribute is overall GC content, which is the fraction of G or C bases of all nucleotide bases of an assembly. GC content is calculated from `gc_content.py`. Other genomic attributes of interest are in development phase and may be added later. 
 
 ## preprocessing and normalizing  
