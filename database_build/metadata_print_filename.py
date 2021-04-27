@@ -1,7 +1,7 @@
 '''
 Copyright:
 
-University of Manitoba & National Microbiology Laboratory, Canada, 2020
+University of Manitoba & National Microbiology Laboratory, Canada, 2021
 
 Written by: Arnab Saha Mandal
 
@@ -18,34 +18,46 @@ specific language governing permissions and limitations under the License.
 '''
 
 import os
-import sys
+import argparse
 from Bio import Entrez
 from get_genomic_metadata import AttributeMetadata
 
-if len(sys.argv) != 6:
-    sys.exit('''
-    Command usage: python metadata_extract_fileindex.py EMAIL NCBI_API_KEY INPUT_DIRECTORY OUTPUT_DIRECTORY FILE_NAME.
-    Need to pass 5 arguments corresponding to your email, ncbi api key, input directory of files containing
-    UIDs, output dirctory and a file name containing list of UIDs.
-    ''')
+ID_LIST_FILE_EXTENSION = 'idlist.txt'
+METADATA_FILE_EXTENSION = 'metadata.txt'
 
-else:
-    email = sys.argv[1]
-    api_key = sys.argv[2]
-    input_dir = sys.argv[3]
-    output_dir = sys.argv[4]
-    filename = sys.argv[5]
+my_parser = argparse.ArgumentParser(usage='python %(prog)s [-h] email api_key input_dir output_dir file_name',
+                                    description='Obtains assembly attributes from API queries')
+my_parser.add_argument('email',
+                        type=str,
+                        help='user email address')
+my_parser.add_argument('api_key',
+                        type=str,
+                        help='NCBI user API key')
+my_parser.add_argument('input_dir',
+                        type=str,
+                        help='input directory containing files of UIDs')
+my_parser.add_argument('output_dir',
+                        type=str,
+                        help='output directory')
+my_parser.add_argument('file_name',
+                        type=str,
+                        help='Name of input file')
+args = my_parser.parse_args()
 
-    if not os.path.exists(output_dir):
-        os.mkdir(output_dir)
+input_dir = args.input_dir
+output_dir = args.output_dir
+file_name = args.file_name
 
-    with open(os.path.join(input_dir, filename)) as f:
-        idlist = f.read().splitlines()
+if not os.path.exists(output_dir):
+    os.mkdir(output_dir)
 
-    output_filename = filename.split('idlist.txt')[0] + 'metadata.txt'
-    output_file = open(os.path.join(output_dir, output_filename), 'w')
+with open(os.path.join(input_dir, file_name)) as f:
+    idlist = f.read().splitlines()
 
-    Entrez.email = email
-    Entrez.api_key = api_key
-    idlist_metadata = AttributeMetadata(idlist)
-    idlist_metadata.print_genomic_metadata(output_file)
+output_filename = file_name.split(ID_LIST_FILE_EXTENSION)[0] + METADATA_FILE_EXTENSION
+output_file = open(os.path.join(output_dir, output_filename), 'w')
+
+Entrez.email = args.email
+Entrez.api_key = args.api_key
+idlist_metadata = AttributeMetadata(idlist)
+idlist_metadata.print_genomic_metadata(output_file)

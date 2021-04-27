@@ -1,7 +1,7 @@
 '''
 Copyright:
 
-University of Manitoba & National Microbiology Laboratory, Canada, 2020
+University of Manitoba & National Microbiology Laboratory, Canada, 2021
 
 Written by: Arnab Saha Mandal
 
@@ -18,16 +18,21 @@ specific language governing permissions and limitations under the License.
 '''
 
 import os
-import sys
 from Bio import Entrez
 import re
+import argparse
 
 SPECIES_COUNTS = 'species_counts_Oct_2020.txt'
+CHUNK_DIVISOR = 10000
 
 
 def species_select():
 
-    '''Groups species counts into four categories depending on assembly counts for respective species'''
+    # Groups species counts into four categories depending on assembly counts for respective species
+    MAJOR_SPECIES_THRESHOLD = 1000
+    LARGE_SPECIES_THRESHOLD = 100
+    INTERMEDIATE_SPECIES_THRESHOLD = 10
+
     species_list_major = []
     species_list_large = []
     species_list_interm = []
@@ -39,13 +44,13 @@ def species_select():
         species_corrected = re.sub(r'[\[\]]', '', species_line[0])
         species_tuple = species_corrected, species_line[1]
 
-        if int(species_line[1]) >= 1000:
+        if int(species_line[1]) >= MAJOR_SPECIES_THRESHOLD:
             species_list_major.append(species_tuple)
-        elif int(species_line[1]) < 1000 and int(species_line[1]) >= 100:
+        elif int(species_line[1]) < MAJOR_SPECIES_THRESHOLD and int(species_line[1]) >= LARGE_SPECIES_THRESHOLD:
             species_list_large.append(species_tuple)
-        elif int(species_line[1]) < 100 and int(species_line[1]) >= 10:
+        elif int(species_line[1]) < LARGE_SPECIES_THRESHOLD and int(species_line[1]) >= INTERMEDIATE_SPECIES_THRESHOLD:
             species_list_interm.append(species_tuple)
-        elif int(species_line[1]) < 10:
+        elif int(species_line[1]) < INTERMEDIATE_SPECIES_THRESHOLD:
             species_list_minor.append(species_tuple)
 
     species_entire_tuple = species_list_major, species_list_large, species_list_interm, species_list_minor
@@ -55,33 +60,39 @@ def species_select():
 
 def id_list(species_tuple=None):
 
-    '''Returns list of ids for a given species'''
+    # Returns list of assembly UIDs for a given species
+    DATABASE = 'assembly'
+    TERM_EXTENSION = '[Organism] AND contig[Assembly Level]'
+    ID_LIST = 'IdList'
+
     try:
-        handle = Entrez.esearch(db="assembly",
-                                term=species_tuple[0] + "[Organism] AND contig[Assembly Level]",
+        handle = Entrez.esearch(db=DATABASE,
+                                term=species_tuple[0] + TERM_EXTENSION,
                                 retmax=species_tuple[1])
         record = Entrez.read(handle)
 
     except Exception:
-        raise Exception('Either internet failure OR some unexpected failure..Exiting...')
+        raise Exception('Either connection failure OR some unexpected failure..Exiting...')
 
-    return record['IdList']
+    return record[ID_LIST]
 
 
 def chunk_counter(idlist=None):
 
-    '''Calculates number of file chunks for a species based on multiples of 10,000'''
-    if len(idlist) % 10000 == 0:
-        chunks = len(idlist)/10000
+    # Calculates number of file chunks for a species' list of UIDs
+    CHUNK_DIVISOR = 10000
+
+    if len(idlist) % CHUNK_DIVISOR == 0:
+        chunks = len(idlist)/CHUNK_DIVISOR
     else:
-        chunks = int(len(idlist)/10000) + 1
+        chunks = int(len(idlist)/CHUNK_DIVISOR) + 1
 
     return chunks
 
 
 def species_outfile(species_tuple=None, chunks=None):
 
-    '''Generates chunk-wise output files for writing UIDs'''
+    # Generates chunk-wise output files for writing UIDs'''
     species_outfile_list = []
     species_name_list = re.split(r'\s|\/', species_tuple[0])
     for i in range(1, chunks + 1):
@@ -104,8 +115,8 @@ def species_iterate(species_list=None, out_dir=None):
             species_outfile_list = species_outfile(sp_tup, chunks)
             print(str(count) + ' species processing: ' + str(sp_tup[0]))
             for k in range(0, chunks):
-                idlist_lowerlim = k*10000
-                idlist_upperlim = (k+1)*10000
+                idlist_lowerlim = k*CHUNK_DIVISOR
+                idlist_upperlim = (k+1)*CHUNK_DIVISOR
                 idlist_batch = []
                 for m in range(idlist_lowerlim, min(idlist_upperlim, len(idlist))):
                     idlist_batch.append(idlist[m])
@@ -121,24 +132,24 @@ def species_iterate(species_list=None, out_dir=None):
 
 
 def main():
-    if len(sys.argv) != 3:
-        sys.exit('''
-        Command usage: python idlist_retriever.py EMAIL NCBI_API_KEY.
-        Need to pass 2 arguments corresponding to your email and ncbi api key
-        ''')
+    species_all_tuple = species_select()
+    my_parser = argparse.ArgumentParser(usage='python %(prog)s [-h] email api_key',
+                                        description='Retrieves assembly UIDs from API queries')
+    my_parser.add_argument('email',
+                           type=str,
+                           help='user email address')
+    my_parser.add_argument('api_key',
+                           type=str,
+                           help='NCBI user API key')
+    args = my_parser.parse_args()
+    
+    Entrez.email = args.email
+    Entrez.api_key = args.api_key
 
-    else:
-        email = sys.argv[1]
-        api_key = sys.argv[2]
-
-        species_all_tuple = species_select()
-        Entrez.email = email
-        Entrez.api_key = api_key
-
-        species_iterate(species_all_tuple[0], 'id_list_major')
-        species_iterate(species_all_tuple[1], 'id_list_large')
-        species_iterate(species_all_tuple[2], 'id_list_interm')
-        species_iterate(species_all_tuple[3], 'id_list_minor')
+    species_iterate(species_all_tuple[0], 'id_list_major')
+    species_iterate(species_all_tuple[1], 'id_list_large')
+    species_iterate(species_all_tuple[2], 'id_list_interm')
+    species_iterate(species_all_tuple[3], 'id_list_minor')
 
 
 if __name__ == "__main__":

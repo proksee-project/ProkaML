@@ -1,11 +1,16 @@
 '''
 Copyright:
-University of Manitoba & National Microbiology Laboratory, Canada, 2020
+
+University of Manitoba & National Microbiology Laboratory, Canada, 2021
+
 Written by: Arnab Saha Mandal
+
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this work except in compliance with the License. You may obtain a copy of the
 License at:
+
 http://www.apache.org/licenses/LICENSE-2.0
+
 Unless required by applicable law or agreed to in writing, software distributed
 under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 CONDITIONS OF ANY KIND, either express or implied. See the License for the
@@ -17,12 +22,19 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
 
-# Defining instance of RandomForestClassifier with parameters
-rfc = RandomForestClassifier(n_estimators=100,
-                             criterion="gini",
-                             max_depth=None,
-                             max_features="auto",
-                             random_state=42)
+# Defining constants for RandomForestClassifier parameters
+NUM_DECISION_TREES = 100
+DECISION_CRITERION = "gini"
+MAX_DEPTH = None # None translates to unlimited depth for seed decision trees
+FEATURE_SELECTION_CRITERION = "auto"
+RANDOM_SEED = 42
+
+# Defining instance of RandomForestClassifier
+rfc = RandomForestClassifier(n_estimators=NUM_DECISION_TREES,
+                             criterion=DECISION_CRITERION,
+                             max_depth=MAX_DEPTH,
+                             max_features=FEATURE_SELECTION_CRITERION,
+                             random_state=RANDOM_SEED)
 
 
 class MachineLearningClassifier():
@@ -30,15 +42,21 @@ class MachineLearningClassifier():
     A class for generating and evaluating machine learning models from assembly QC data
 
     ATTRIBUTES
-        dataframe (obj): the dataframe object of assembly metadata
+        dataframe (obj): An object of class pandas.Dataframe having a two-dimensional data structure with
+        ~500,000 rows (first row contains headers) and 29 columns of different assembly attributes (str, int, float)
     """
 
+    # Defining constants for machine learning data matrix
+    COLUMNS_OF_INTEREST = ['logn50_normalized', 'logcontigcount_normalized', 'logl50_normalized',
+                           'logtotlen_normalized', 'gccontent_normalized', 'label']
+    
     def __init__(self, dataframe):
         """
         Initializes the MachineLearningClassifier class
 
         PARAMETERS
-            dataframe (obj): the dataframe object of assembly metadata
+            dataframe (obj): An object of class pandas.Dataframe having a two-dimensional data structure with
+            ~500,000 rows (first row contains headers) and 29 columns of different assembly attributes (str, int, float)
         """
 
         self.dataframe = dataframe
@@ -48,26 +66,29 @@ class MachineLearningClassifier():
         Curates labels based on assembly inclusion or exclusion in NCBI RefSeq database
 
         RETURNS
-           inclusion_data, exclusion_data : tuple of dataframes (obj.) for inclusion and exclusion datasets
+           inclusion_data, exclusion_data : tuple of dataframes (obj.) for inclusion and exclusion datasets. Objects are of
+           class pandas.Dataframe with two-dimensional data structures of ~95,000 rows and 6 columns (float, int) for inclusion
+           dataset and ~18,000 rows and 6 columns (float, int) for exclusion dataset 
         """
 
+        REFSEQ_ACCESSION = 'Refseq Accession'
+        REFSEQ_EXCLUSION = 'Refseq Exclusion Reason'
         inclusion_label = 1
         exclusion_label = 2
 
-        RefSeq_included_data = self.dataframe[self.dataframe['Refseq Accession'].notnull()]
+        RefSeq_included_data = self.dataframe[self.dataframe[REFSEQ_ACCESSION].notnull()]
         RefSeq_included_data = RefSeq_included_data.assign(label=inclusion_label)
 
-        RefSeq_excluded_data = self.dataframe[self.dataframe['Refseq Accession'].isnull()]
-        RefSeq_excluded_multi_isolate = RefSeq_excluded_data[~RefSeq_excluded_data['Refseq Exclusion Reason'].
+        RefSeq_excluded_data = self.dataframe[self.dataframe[REFSEQ_ACCESSION].isnull()]
+        RefSeq_excluded_multi_isolate = RefSeq_excluded_data[~RefSeq_excluded_data[REFSEQ_EXCLUSION].
                                                              str.contains(r'multi-isolate|\[\]', regex=True)]
         RefSeq_excluded_multi_isolate = RefSeq_excluded_multi_isolate.assign(label=exclusion_label)
 
+
+
         # Creating dataframes of inclusion and exclusion datasets with columns of interest
-        inclusion_data = RefSeq_included_data[['logn50_normalized', 'logcontigcount_normalized', 'logl50_normalized',
-                                               'logtotlen_normalized', 'gccontent_normalized', 'label']]
-        exclusion_data = RefSeq_excluded_multi_isolate[['logn50_normalized', 'logcontigcount_normalized',
-                                                        'logl50_normalized', 'logtotlen_normalized',
-                                                        'gccontent_normalized', 'label']]
+        inclusion_data = RefSeq_included_data[self.COLUMNS_OF_INTEREST]
+        exclusion_data = RefSeq_excluded_multi_isolate[self.COLUMNS_OF_INTEREST]
 
         return inclusion_data, exclusion_data
 
@@ -76,15 +97,18 @@ class MachineLearningClassifier():
         Generates random forests models and calculates cross-validation scores
 
         PARAMETERS
-            inclusion_data (obj.): dataframe of NCBI RefSeq included assemblies
-            exclusion_data (obj.): dataframe of NCBI RefSeq excluded assemblies
+            inclusion_data (obj.): Object of class pandas.Dataframe with ~95,000 rows and 6 columns (float, int)
+            exclusion_data (obj.): Object of class pandas.Dataframe with ~18,000 rows and 6 columns (float, int)
             num_iterations (int): number of random forests models to be generated
 
         RETURNS
-            list_models_and_scores (list): list of prediction models with averaged cross-validation scores
+            list_models_and_scores (list): list of sublists, with each sublist containing an object of class
+            RandomForestClassifier and average cross-validation score (float)
         """
 
         list_models_and_scores = []
+        N_FOLD_CV = 10
+
         for i in range(0, num_iterations):
 
             # Randomized balanced subsamping of inclusion data
@@ -92,16 +116,15 @@ class MachineLearningClassifier():
             integrated_data = pd.concat([inclusion_data_balanced, exclusion_data], ignore_index=True)
 
             # Defining feature space and label vector
-            feature_space = integrated_data.drop('label', axis=1)
-            label_vector = integrated_data['label']
+            feature_space = integrated_data.drop(self.COLUMNS_OF_INTEREST[-1], axis=1)
+            label_vector = integrated_data[self.COLUMNS_OF_INTEREST[-1]]
 
             # Fitting random forests model to the training data
             rfc.fit(feature_space, label_vector)
             print('Fitting random forest model {}. Evaluating cross-validation score'.format(int(i+1)))
 
-            # Evaluating models by 10 fold cross-validation
-            n_fold_cv = 10
-            model_average_cv_score = np.average(cross_val_score(rfc, feature_space, label_vector, cv=n_fold_cv))
+            # Evaluating models by N (N=10) fold cross-validation
+            model_average_cv_score = np.average(cross_val_score(rfc, feature_space, label_vector, cv=N_FOLD_CV))
 
             list_models_and_scores.append([rfc, model_average_cv_score])
 
@@ -112,7 +135,7 @@ class MachineLearningClassifier():
         Returns prediction model with the highest average cross-validation score
 
         RETURNS
-            best_fit_model (obj.): random forests model object with highest average cross-validation score
+            best_fit_model (obj.): object of class RandomForestClassifier with highest average cross-validation score
         """
 
         inclusion_data, exclusion_data = self.curate_labels()
@@ -132,16 +155,18 @@ class MachineLearningClassifier():
         Applies best fitting model to entire database
 
         PARAMETERS
-            best_fit_model (obj.): random forests model object with highest average cross-validation score
+            best_fit_model (obj.): object of class RandomForestClassifier with highest average cross-validation score
 
         RETURNS
-            self.dataframe (obj.): database object with added column of prediction probability
+            self.dataframe (obj.): object of class pandas.DataFrame having a two-dimensional data structure with
+            ~500,000 rows (first row contains headers) and 30 columns of different assembly attributes (str, int, float)
         """
 
-        database_dataframe = self.dataframe[['logn50_normalized', 'logcontigcount_normalized', 'logl50_normalized',
-                                             'logtotlen_normalized', 'gccontent_normalized']]
+        PREDICTION_COLUMN = 'RefSeq_predict_prob'
+
+        database_dataframe = self.dataframe[self.COLUMNS_OF_INTEREST[:-1]]
 
         # Predicting assembly QC probability and assigning prediction probability column to database
-        self.dataframe['RefSeq_predict_prob'] = best_fit_model.predict_proba(database_dataframe)[:, 0]
+        self.dataframe[PREDICTION_COLUMN] = best_fit_model.predict_proba(database_dataframe)[:, 0]
 
         return self.dataframe

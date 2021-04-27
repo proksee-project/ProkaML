@@ -28,8 +28,9 @@ class AttributeMetadata():
     A class for obtaining genomic assembly attributes from NCBI
 
     ATTRIBUTES
-        idlist (list): list of NCBI assembly UIDs
-        document_summary (dict): nested biopython dictionary mapping assembly UIDs to genomic attributes
+        idlist (list): list of NCBI assembly UIDs (int)
+        document_summary (dict): nested biopython dictionary mapping assembly UIDs (int)
+        to genomic attributes (str, float, int)
     """
 
     def __init__(self, idlist):
@@ -37,7 +38,7 @@ class AttributeMetadata():
         Initializes class for obtaining genomic metadata from NCBI contig assemblies
 
         PARAMETERS:
-            idlist (list): list of NCBI assembly UIDs
+            idlist (list): list of NCBI assembly UIDs (int)
         """
 
         self.idlist = idlist
@@ -54,7 +55,8 @@ class AttributeMetadata():
             outfile : the output file to which metadata is written
 
         POST
-            Metadata for every assembly UID is written as column separated entities to output file
+            Metadata for every assembly UID is written as column separated values (str, float, int)
+            to output file
         """
 
         for j in range(0, len(self.idlist)):
@@ -70,8 +72,11 @@ class AttributeMetadata():
         Obtains metadata attributes for every assembly
 
         PARAMETERS:
-            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
-            esummary function
+            document_dict (dict): the document dictionary of an assembly mapping UID (int)
+            to assembly attributes (str, float, int)
+
+        RETURNS
+            metadata (list): list of assembly specific attributes (str, float, int)
         """
 
         species = self.get_species_name(document_dict)
@@ -103,7 +108,8 @@ class AttributeMetadata():
         Obtains species name for an assembly from NCBI
 
         PARAMETERS:
-            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+            document_dict (dict): the document dictionary of an assembly mapping UID (int)
+            to assembly attributes (str, float, int)
 
         RETURNS:
             species_name (str): the species name for an assembly from NCBI
@@ -122,7 +128,8 @@ class AttributeMetadata():
         Obtains species strain/isolate for an assembly from NCBI
 
         PARAMETERS:
-            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+            document_dict (dict): the document dictionary of an assembly mapping UID (int)
+            to assembly attributes (str, float, int)
 
         RETURNS:
             strain (str): the species strain/isolate (if applicable) for an assembly from NCBI
@@ -151,7 +158,8 @@ class AttributeMetadata():
         Obtains assembly ID for an assembly from NCBI
 
         PARAMETERS:
-            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+            document_dict (dict): the document dictionary of an assembly mapping UID (int)
+            to assembly attributes (str, float, int)
 
         RETURNS:
             assembly_id (str): the assembly ID for an assembly from NCBI
@@ -170,7 +178,8 @@ class AttributeMetadata():
         Obtains Genbank ID for an assembly from NCBI
 
         PARAMETERS:
-            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+            document_dict (dict): the document dictionary of an assembly mapping UID (int)
+            to assembly attributes (str, float, int)
 
         RETURNS:
             genbank_id (str): the Genbank ID for an assembly from NCBI
@@ -193,7 +202,8 @@ class AttributeMetadata():
         Obtains RefSeq Accession ID for an assembly from NCBI
 
         PARAMETERS:
-            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+            document_dict (dict): the document dictionary of an assembly mapping UID (int)
+            to assembly attributes (str, float, int)
 
         RETURNS:
             refseq_id (str): the RefSeq Accession ID (if applicable) for an assembly from NCBI
@@ -216,7 +226,8 @@ class AttributeMetadata():
         Obtains genomic coverage for an assembly from NCBI
 
         PARAMETERS:
-            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+            document_dict (dict): the document dictionary of an assembly mapping UID (int)
+            to assembly attributes (str, float, int)
 
         RETURNS:
             genome_coverage (float): the genomic coverage for an assembly from NCBI
@@ -235,7 +246,8 @@ class AttributeMetadata():
         Obtains submission date for an assembly from NCBI
 
         PARAMETERS:
-            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+            document_dict (dict): the document dictionary of an assembly mapping UID (int)
+            to assembly attributes (str, float, int)
 
         RETURNS:
             submission_date (str): the submission date for an assembly from NCBI
@@ -254,7 +266,8 @@ class AttributeMetadata():
         Obtains last updated date for an assembly from NCBI
 
         PARAMETERS:
-            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+            document_dict (dict): the document dictionary of an assembly mapping UID (int)
+            to assembly attributes (str, float, int)
 
         RETURNS:
             last_update_date (str): the last update date for an assembly from NCBI
@@ -273,7 +286,8 @@ class AttributeMetadata():
         Obtains RefSeq exclusion reason/s (if applicable) for an assembly from NCBI
 
         PARAMETERS:
-            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+            document_dict (dict): the document dictionary of an assembly mapping UID (int)
+            to assembly attributes (str, float, int)
 
         RETURNS:
             refseq_excl (str): RefSeq exclusion reason/s (if applicable) for an assembly from NCBI
@@ -292,7 +306,8 @@ class AttributeMetadata():
         Obtains N50 for an assembly from NCBI
 
         PARAMETERS:
-            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+            document_dict (dict): the document dictionary of an assembly mapping UID (int)
+            to assembly attributes (str, float, int)
 
         RETURNS:
             N50 (int): the N50 for an assembly from NCBI
@@ -311,7 +326,8 @@ class AttributeMetadata():
         Obtains number of contigs for an assembly from NCBI
 
         PARAMETERS:
-            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+            document_dict (dict): the document dictionary of an assembly mapping UID (int)
+            to assembly attributes (str, float, int)
 
         RETURNS:
             num_contigs (int): the number of contigs for an assembly from NCBI
@@ -335,7 +351,8 @@ class AttributeMetadata():
         Obtains L50 for an assembly from NCBI
 
         PARAMETERS:
-            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+            document_dict (dict): the document dictionary of an assembly mapping UID (int)
+            to assembly attributes (str, float, int)
 
         RETURNS:
             l50 (int): the L50 for an assembly from NCBI
@@ -359,7 +376,8 @@ class AttributeMetadata():
         Obtains assembly length from NCBI
 
         PARAMETERS:
-            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+            document_dict (dict): the document dictionary of an assembly mapping UID (int)
+            to assembly attributes (str, float, int)
 
         RETURNS:
             length (int): the assembly length from NCBI
@@ -383,7 +401,8 @@ class AttributeMetadata():
         Obtains assembly report length from NCBI
 
         PARAMETERS:
-            document_dict (dict): the document dictionary of an assembly obtained by NCBI Entrez
+            document_dict (dict): the document dictionary of an assembly mapping UID (int)
+            to assembly attributes (str, float, int)
 
         RETURNS:
             assembly_report_lines_string (str): the assembly report from NCBI
@@ -403,7 +422,7 @@ class AttributeMetadata():
                 # decode() is applicable on a string
                 # splitlines() removes \r and \n characters, generates a list
                 assembly_report_lines_list = assembly_url_request.read().decode('utf-8').splitlines()
-                assembly_report_lines_string = JOIN_CHARACTER.join(assembly_assembly_report_lines_list)
+                assembly_report_lines_string = JOIN_CHARACTER.join(assembly_report_lines_list)
 
             except (urllib.error.HTTPError, urllib.error.URLError):
                 """
