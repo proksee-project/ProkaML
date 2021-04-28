@@ -2,7 +2,7 @@
 Reference library for microorganisms with different genome assembly metrics and statistics
 
 ## proksee-database generation 
-The scripts for generating proksee database comprising genomic attributes of NCBI contig assemblies are in the directory `database_build`. The scripts run biopython API queries on the NCBI database and therefore require the user to provide an API key corresponding to their account. If you dont have an NCBI api key, create an account at https://www.ncbi.nlm.nih.gov/account/ using your email. Once you sign in, click on the top right corner on your email id. This will redirect you to a new page where you can find your api key. You will need to use this api key for most of the scripts within `database_build` directory.  
+The scripts for generating proksee database comprising genomic attributes of NCBI contig assemblies are in the directory `database_build`. The scripts run biopython API queries on the NCBI database and therefore require the user to provide an API key corresponding to their account. If you dont have an NCBI API key, visit the NCBI login [page](https://www.ncbi.nlm.nih.gov/account/) and create an account using your email. Once you sign in, click on the top right corner on your email ID. This will redirect you to a new page where you can find your API key. You will need to use this API key for most of the scripts within `database_build` directory.  
 
 Step 1: Run `assemblydb_entrez_query.py` . Usage: `python assemblydb_entrez_query.py email api_key`. 
 This runs Entrez API queries to scan for contig assemblies on the entire NCBI assembly database. Generates counts of species/organism names in a two column tab separated text file `species_counts_[Month]_[year].txt`  
@@ -24,8 +24,8 @@ Campylobacter coli	15398
 .........................  
 ```  
 
-Step 2: Run `idlist_retriever.py`. Usage: `python idlist_retriever.py email api_key`. 
-This examines `species_counts_[Month]_[year].txt` from step 1 and generates list of assembly unique IDs (UIDs) for all species. Since some species are better represented (more assembly counts) in assembly database than others, this script writes UIDs into four separate directories based on counts of assemblies for a particular species  
+Step 2: Run `idlist_retriever.py`. Usage: `python assemblydb_entrez_query.py email api_key`. 
+This examines `species_counts_[Month]_[year].txt` from step 1 and generates list of assembly UIDs for all species. Since some species are better represented (more assembly counts) in assembly database than others, this script writes UIDs into four separate directories based on counts of assemblies for a particular species  
 - id_list_major - Directory containing UIDs for species >= 1000 assemblies each. Species with > 10,000 assemblies are separated into chunk files each containing maximum of 10,000 UIDs      
 - id_list_large - Directory containing UIDs for species < 1000 but >= 100 assemblies each   
 - id_list_interm - Directory containing UIDs for species < 100 but >= 10 assemblies each
@@ -45,7 +45,7 @@ Step 3 (Alternate): Run `metadata_print_filename.py`. This step is almost identi
 e.g. if one of the files within directory `id_list_interm` is `Acholeplasma_laidlawii_chunk1_idlist.txt`, the usage of this script would be: 
 - `python metadata_print_filename.py email api_key id_list_interm interm_metadata Acholeplasma_laidlawii_chunk1_idlist.txt`  
 
-The output file for the example would be `Acholeplasma_laidlawii_chunk1_metadata.txt`. The alternate step is used for troubleshooting when individual files containing UIDs are not annotated with NCBI metadata for reasons beyond the user's control (NCBI server/connection issues)  
+The output file for the example would be `Acholeplasma_laidlawii_chunk1_metadata.txt`. The alternate step is used for troubleshooting when individual files containing UIDs are not annotated with NCBI metadata for reasons beyond the user's control (NCBI server/connection issues).  
 
 Step 3 (either recommended or alternate) writes a tab separated table `*chunk*_metadata.txt` with rows corresponding to every assembly within a `*chunk*_idlist.txt` file and columns corresponding to the following genomic attributes:  
 - Species name
@@ -64,6 +64,11 @@ Step 3 (either recommended or alternate) writes a tab separated table `*chunk*_m
 - Assembly method
 - Sequencing technology  
 
-The genomic attributes are obtained from `GetMetadata` class in `get_genomic_attributes.py`. A file `Acholeplasma_laidlawii_chunk1_idlist.txt` containing UIDs will generate `Acholeplasma_laidlawii_chunk1_metadata.txt` upon running of Step 3.
+The genomic attributes are obtained from the `get_genomic_metadata.py` script from the `AttributeMetadata` class. A file named `Acholeplasma_laidlawii_chunk1_idlist.txt` containing UIDs will generate `Acholeplasma_laidlawii_chunk1_metadata.txt` upon the running of Step 3.
 
-Step 4: It is upto the user to use annotated metadata in a species-wise or aggregated manner depending on the downstream analytical strategies. For now, species with > 100 assemblies are arranged as filenames for respective species e.g. major_species_metadata/Campylobacter_jejuni_metadata.txt . There are 34 species with > 1000 assemblies and 169 species with assemblies between 100 and 1000. These 203 species are annotated as separate files. Species with < 100 assemblies are agggregated as concatenated metadata files `intermediate_species_metadata.txt` and `minor_species_metadata.txt`
+Step 4: The annotated metadata files are concatenated. The naming of concatenated files is based on the grouping in Step 2. *E.g.* species with >= 1000 assembly records, with UIDs in `id_list_major` and with different metadata annotated fileparts (from Step 3) are concatenated as `major_species_metadata.txt`. Overall, there are four concatenated metadata files named as:  
+- `major_species_metadata.txt` for species >= 1000 assemblies each  
+- `large_species_metadata.txt` for species < 1000 but >= 100 assemblies each  
+- `intermediate_species_metadata.txt` for species < 100 but >= 10 assemblies each  
+- `minor_species_metadata.txt` for species < 10 assemblies each  
+In order to conduct analytical strategies with well represented species, the `minor_species_metadata.txt` file containing metadata for species with poor representation in the NCBI assembly database is not used. The other annotated metadata files: `major_species_metadata.txt`, `large_species_metadata.txt` and `intermediate_species_metadata.txt` are concatenated together as `well_represented_species_metadata.txt` with a one-line column header file `metadata_header.txt` appended at the beginning. The resulting file forms the starting point for subsequent analyses.  
