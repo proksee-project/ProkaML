@@ -1,11 +1,16 @@
 '''
 Copyright:
-University of Manitoba & National Microbiology Laboratory, Canada, 2020
+
+University of Manitoba & National Microbiology Laboratory, Canada, 2021
+
 Written by: Arnab Saha Mandal
+
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this work except in compliance with the License. You may obtain a copy of the
 License at:
+
 http://www.apache.org/licenses/LICENSE-2.0
+
 Unless required by applicable law or agreed to in writing, software distributed
 under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
 CONDITIONS OF ANY KIND, either express or implied. See the License for the
@@ -28,15 +33,33 @@ class SpeciesNormalization():
     A class representing species specific normalization of assembly attributes
 
     ATTRIBUTES
-        dataframe (obj): the dataframe object of assembly metadata
+        dataframe (obj): An object of class pandas.Dataframe having a two-dimensional data structure with
+        ~500,000 rows (first row contains headers) and 16 columns of different assembly attributes (str, int, float)
     """
+
+    # Defining constants for column names
+    SPECIES = 'Organism Name'
+    N50 = 'ContigN50'
+    LOG_N50 = 'logn50'
+    NUM_CONTIGS = 'Contig count'
+    LOG_NUM_CONTIGS = 'logcontigcount'
+    L50 = 'ContigL50'
+    LOG_L50 = 'logl50'
+    LENGTH = 'Total length'
+    LOG_LENGTH = 'logtotlen'
+    COVERAGE = 'Genome Coverage'
+    LOG_COVERAGE = 'logcoverage'
+    GC_CONTENT = 'GCcontent'
+    GC_CONTENT_IMPUTED = 'GCcontent_imputed'
+
 
     def __init__(self, dataframe):
         """
         Initializes the SpeciesNormalization class
 
         PARAMETERS
-            dataframe (obj): the dataframe object of assembly metadata
+            dataframe (obj): dataframe (obj): An object of class pandas.Dataframe having a two-dimensional data structure with
+            ~500,000 rows (first row contains headers) and 16 columns of different assembly attributes (str, int, float)
         """
 
         self.dataframe = dataframe
@@ -46,18 +69,20 @@ class SpeciesNormalization():
         Subsets species with valid taxonomical groups
 
         RETURNS
-            valid_species_dataframe_list (list): list of dataframes of (taxonomically valid) species
-            containing assembly attributes
+            valid_species_dataframe_list (list): list of dataframes. Each dataframe has two-dimensional data structure, with
+            number of rows ranging from ten to several thousands, and 16 columns of different assembly attributes (str, int, float)
         """
+        
+        REGEX_JOINING_CHAR = "|"
 
         # List of regular expressions to exclude invalid species' taxonomy names, can be expanded
         exclude_species_patterns = ['uncultured',
                                     'metagenome',
                                     '^bacterium$'
                                     ]
-        exclude_species = re.compile("|".join(exclude_species_patterns))
-        valid_species_dataframe = self.dataframe[~self.dataframe['Organism Name'].str.contains(exclude_species)]
-        valid_species_group = valid_species_dataframe.groupby('Organism Name')
+        exclude_species = re.compile(REGEX_JOINING_CHAR.join(exclude_species_patterns))
+        valid_species_dataframe = self.dataframe[~self.dataframe[self.SPECIES].str.contains(exclude_species)]
+        valid_species_group = valid_species_dataframe.groupby(self.SPECIES)
         valid_species_dataframe_list = [valid_species_group.get_group(x) for x in valid_species_group.groups]
 
         return valid_species_dataframe_list
@@ -67,25 +92,31 @@ class SpeciesNormalization():
         Appends logarithms (or imputations for missing data) of assembly attributes
 
         PARAMETERS
-            dataframe (obj): dataframe object of species specific attributes
+            dataframe (obj): object of class pandas.Dataframe with number of rows ranging from ten to several thousands,
+            and 16 columns of different assembly attributes (str, int, float)
 
         RETURNS
-            dataframe (obj): dataframe with appended columns of species specific logarithm calculated attributes
+            dataframe (obj): object of class pandas.Dataframe with number of rows ranging from ten to several thousands,
+            and 23 columns of different assembly attributes (str, int, float)
         """
 
-        dataframe = dataframe.assign(logn50=round(np.log10(dataframe['ContigN50']), 3))
-        dataframe = dataframe.assign(logcontigcount=round(np.log10(dataframe['Contig count']), 3))
-        dataframe = dataframe.assign(logl50=round(np.log10(dataframe['ContigL50']), 3))
-        dataframe = dataframe.assign(logtotlen=round(np.log10(dataframe['Total length']), 3))
+        ROUNDING_DIGITS = 3
+        ADJUSTED_COVERAGE = 'adj coverage'
+        ZERO_COVERAGE_ADJUSTMENT = 0.1
 
-        # Adding column 'adj coverage' to allow logarithm calculations of assemblies with zero coverage
-        dataframe.loc[dataframe['Genome Coverage'] > 0, 'adj coverage'] = dataframe['Genome Coverage']
-        dataframe.loc[dataframe['Genome Coverage'] == 0, 'adj coverage'] = 0.1
-        dataframe = dataframe.assign(logcoverage=round(np.log10(dataframe['adj coverage']), 3))
+        dataframe = dataframe.assign(logn50=round(np.log10(dataframe[self.N50]), ROUNDING_DIGITS))
+        dataframe = dataframe.assign(logcontigcount=round(np.log10(dataframe[self.NUM_CONTIGS]), ROUNDING_DIGITS))
+        dataframe = dataframe.assign(logl50=round(np.log10(dataframe[self.L50]), ROUNDING_DIGITS))
+        dataframe = dataframe.assign(logtotlen=round(np.log10(dataframe[self.LENGTH]), ROUNDING_DIGITS))
 
-        # Add column 'GCcontent_imputed' to replace missing GC values with species specific medians
-        dataframe.loc[dataframe['GCcontent'].notnull(), 'GCcontent_imputed'] = dataframe['GCcontent']
-        dataframe.loc[dataframe['GCcontent'].isnull(), 'GCcontent_imputed'] = dataframe['GCcontent'].median()
+        # Adding column ADJUSTED_COVERAGE to allow logarithm calculations of assemblies with zero coverage
+        dataframe.loc[dataframe[self.COVERAGE] > 0, ADJUSTED_COVERAGE] = dataframe[self.COVERAGE]
+        dataframe.loc[dataframe[self.COVERAGE] == 0, ADJUSTED_COVERAGE] = ZERO_COVERAGE_ADJUSTMENT
+        dataframe = dataframe.assign(logcoverage=round(np.log10(dataframe[ADJUSTED_COVERAGE]), ROUNDING_DIGITS))
+
+        # Add column GC_CONTENT_IMPUTED to replace missing GC values with species specific medians
+        dataframe.loc[dataframe[self.GC_CONTENT].notnull(), self.GC_CONTENT_IMPUTED] = dataframe[self.GC_CONTENT]
+        dataframe.loc[dataframe[self.GC_CONTENT].isnull(), self.GC_CONTENT_IMPUTED] = dataframe[self.GC_CONTENT].median()
 
         return dataframe
 
@@ -94,13 +125,14 @@ class SpeciesNormalization():
         Calculates median of log(n50)
 
         PARAMETERS
-            dataframe (obj): A species specific dataframe of assembly attributes
+            dataframe (obj): object of class pandas.Dataframe with number of rows ranging from ten to several thousands,
+            and 23 columns of different assembly attributes (str, int, float)
 
         RETURNS
             median_log_n50 (float): species specific median of log(n50)
         """
 
-        median_log_n50 = dataframe['logn50'].median()
+        median_log_n50 = dataframe[self.LOG_N50].median()
 
         return median_log_n50
 
@@ -109,13 +141,14 @@ class SpeciesNormalization():
         Calculates median of log(number of contigs)
 
         PARAMETERS
-            dataframe (obj): A species specific dataframe of assembly attributes
+            dataframe (obj): object of class pandas.Dataframe with number of rows ranging from ten to several thousands,
+            and 23 columns of different assembly attributes (str, int, float)
 
         RETURNS
             median_log_contigcount (float): species specific median of log(number of contigs)
         """
 
-        median_log_contigcount = dataframe['logcontigcount'].median()
+        median_log_contigcount = dataframe[self.LOG_NUM_CONTIGS].median()
 
         return median_log_contigcount
 
@@ -124,13 +157,14 @@ class SpeciesNormalization():
         Calculates median of log(l50)
 
         PARAMETERS
-            dataframe (obj): A species specific dataframe of assembly attributes
+            dataframe (obj): object of class pandas.Dataframe with number of rows ranging from ten to several thousands,
+            and 23 columns of different assembly attributes (str, int, float)
 
         RETURNS
             median_log_l50 (float): species specific median of log(l50)
         """
 
-        median_log_l50 = dataframe['logl50'].median()
+        median_log_l50 = dataframe[self.LOG_L50].median()
 
         return median_log_l50
 
@@ -139,13 +173,14 @@ class SpeciesNormalization():
         Calculates median of log(assembly length)
 
         PARAMETERS
-            dataframe (obj): A species specific dataframe of assembly attributes
+            dataframe (obj): object of class pandas.Dataframe with number of rows ranging from ten to several thousands,
+            and 23 columns of different assembly attributes (str, int, float)
 
         RETURNS
             median_log_totlen (float): species specific median of log(assembly length)
         """
 
-        median_log_totlen = dataframe['logtotlen'].median()
+        median_log_totlen = dataframe[self.LOG_LENGTH].median()
 
         return median_log_totlen
 
@@ -154,13 +189,14 @@ class SpeciesNormalization():
         Calculates median of log(genome coverage)
 
         PARAMETERS
-            dataframe (obj): A species specific dataframe of assembly attributes
+            dataframe (obj): object of class pandas.Dataframe with number of rows ranging from ten to several thousands,
+            and 23 columns of different assembly attributes (str, int, float)
 
         RETURNS
             median_log_coverage (float): species specific median of log(genome coverage)
         """
 
-        median_log_coverage = dataframe['logcoverage'].median()
+        median_log_coverage = dataframe[self.LOG_COVERAGE].median()
 
         return median_log_coverage
 
@@ -169,13 +205,14 @@ class SpeciesNormalization():
         Calculates median of overall gc content
 
         ATTRIBUTES
-            dataframe (obj): A species specific dataframe of assembly attributes
+            dataframe (obj): object of class pandas.Dataframe with number of rows ranging from ten to several thousands,
+            and 23 columns of different assembly attributes (str, int, float)
 
         RETURNS
             median_log_coverage (float): species specific median of gc content
         """
 
-        median_gc_content = dataframe['GCcontent_imputed'].median()
+        median_gc_content = dataframe[self.GC_CONTENT_IMPUTED].median()
 
         return median_gc_content
 
@@ -184,7 +221,8 @@ class SpeciesNormalization():
         Writes species specific median values of assembly attributes
 
         PARAMETERS
-            dataframe (obj): A species specific dataframe of assembly attributes
+            dataframe (obj): object of class pandas.Dataframe with number of rows ranging from ten to several thousands,
+            and 23 columns of different assembly attributes (str, int, float)
 
         POST
             species specific median attributes are written to MEDIAN_DATABASE_FILE
@@ -204,23 +242,25 @@ class SpeciesNormalization():
         Calculates and appends species specific normalized assembly attributes
 
         PARAMETERS
-            dataframe (obj): A species specific dataframe of assembly attributes
+            dataframe (obj): object of class pandas.Dataframe with number of rows ranging from ten to several thousands,
+            and 23 columns of different assembly attributes (str, int, float)
 
         RETURNS
-            dataframe (obj): dataframe with appended columns of normalized attributes
+            dataframe (obj): object of class pandas.Dataframe with number of rows ranging from ten to several thousands,
+            and 29 columns of different assembly attributes (str, int, float)
         """
 
-        dataframe = dataframe.assign(logn50_normalized=dataframe['logn50'] -
+        dataframe = dataframe.assign(logn50_normalized=dataframe[self.LOG_N50] -
                                      self.get_median_log_n50(dataframe))
-        dataframe = dataframe.assign(logcontigcount_normalized=dataframe['logcontigcount'] -
+        dataframe = dataframe.assign(logcontigcount_normalized=dataframe[self.LOG_NUM_CONTIGS] -
                                      self.get_median_log_contigcount(dataframe))
-        dataframe = dataframe.assign(logl50_normalized=dataframe['logl50'] -
+        dataframe = dataframe.assign(logl50_normalized=dataframe[self.LOG_L50] -
                                      self.get_median_log_l50(dataframe))
-        dataframe = dataframe.assign(logtotlen_normalized=dataframe['logtotlen'] -
+        dataframe = dataframe.assign(logtotlen_normalized=dataframe[self.LOG_LENGTH] -
                                      self.get_median_log_totlen(dataframe))
-        dataframe = dataframe.assign(logcoverage_normalized=dataframe['logcoverage'] -
+        dataframe = dataframe.assign(logcoverage_normalized=dataframe[self.LOG_COVERAGE] -
                                      self.get_median_log_coverage(dataframe))
-        dataframe = dataframe.assign(gccontent_normalized=dataframe['GCcontent_imputed'] -
+        dataframe = dataframe.assign(gccontent_normalized=dataframe[self.GC_CONTENT_IMPUTED] -
                                      self.get_median_gc_content(dataframe))
 
         return dataframe
@@ -235,6 +275,7 @@ class SpeciesNormalization():
 
         valid_species_dataframe_list = self.subset_valid_species()
         species_count = 0
+        separator = '\t'
 
         for individual_species_dataframe in valid_species_dataframe_list:
             appended_species_dataframe = self.append_logarithm_imputations(individual_species_dataframe)
@@ -247,6 +288,6 @@ class SpeciesNormalization():
             else:
                 header = False
 
-            species_normalized_dataframe.to_csv(NORMALIZED_DATABASE_FILE, sep='\t', mode='a',
+            species_normalized_dataframe.to_csv(NORMALIZED_DATABASE_FILE, sep=separator, mode='a',
                                                 header=header, index=False)
             species_count += 1

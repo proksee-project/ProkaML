@@ -23,7 +23,8 @@ class OrganizeMetadata():
     A class representing text uniformization of assembly methods and sequencing technologies in NCBI assembly database
 
     ATTRIBUTES
-        dataframe (obj): the dataframe object of assembly metadata
+        dataframe (obj): An object of class pandas.Dataframe having a two-dimensional data structure with
+        ~500,000 rows (first row contains headers) and 16 columns of different assembly attributes (str, int, float)
     """
 
     def __init__(self, dataframe):
@@ -31,17 +32,19 @@ class OrganizeMetadata():
         Initializes the OrganizeMetadata class
 
         PARAMETERS
-            dataframe (obj): the dataframe object of assembly metadata
+            dataframe (obj): An object of class pandas.Dataframe having a two-dimensional data structure with
+            ~500,000 rows (first row contains headers) and 16 columns of different assembly attributes (str, int, float)
         """
 
         self.dataframe = dataframe
 
     def organize_assembly_method(self):
         """
-        Organizes assembler methods of user submitted metadata in NCBI assembly database
+        Performs text cleaning of user submitted assembler methods by regular expressions based pattern
+        identification and subsequent appropriate text replacements
 
         POST
-            The 'Assembly Method' column is re-written using regular expressions
+            The 'Assembly Method' column data (str) is cleaned for clarity (str)
         """
 
         # Organizing assembly methods represented at least 10 times in the database
@@ -208,13 +211,14 @@ class OrganizeMetadata():
 
     def organize_sequencing_technology(self):
         """
-        Organizes sequencing technologies of user submitted metadata in NCBI assembly database
+        Performs text cleaning of user submitted sequencing technologies by regular expressions based pattern
+        identification and subsequent appropriate text replacements
 
         POST
-            The 'Sequencing Technology' column is re-written using regular expressions
+            The 'Sequencing Technology' column data (str) is cleaned for clarity (str)
         """
 
-        # Regularizing well known sequencing technologies
+        # Textual organization of well known sequencing technologies
         self.dataframe = self.dataframe.replace({'Sequencing Technology': r'.*454.*$'},
                                                 {'Sequencing Technology': '454'}, regex=True)
         self.dataframe = self.dataframe.replace({'Sequencing Technology': r'^BGI.*$'},
@@ -248,7 +252,7 @@ class OrganizeMetadata():
         self.dataframe = self.dataframe.replace({'Sequencing Technology': r'.*[Ss][Oo][Ll]i[Dd].*$'},
                                                 {'Sequencing Technology': 'SOLiD'}, regex=True)
 
-        # Replacing not well known sequencing technologies with 'NA'
+        # Replacing sequencing technologies that are not well known with 'NA'
         self.dataframe = self.dataframe.replace({'Sequencing Technology': r'.*Others.*$'},
                                                 {'Sequencing Technology': 'NA'}, regex=True)
 
@@ -257,7 +261,8 @@ class OrganizeMetadata():
         Identifies assemblies associated with long reads
 
         RETURNS
-            long_read_index (obj) : The index (row labels) of the dataframe associated with long read assemblies
+            long_read_index (list) : list of integers that are row labels of the dataframe associated with long read
+            assemblies
         """
 
         long_read_index = self.dataframe[(self.dataframe['Sequencing Technology'] == 'OxfordNanopore') |
@@ -273,10 +278,12 @@ class OrganizeMetadata():
 
     def prenormalize_metadata(self):
         """
-        Organizes assembly method, sequencing_platform and excludes long read assembly data
+        Performs text cleaning by string replacement of assembly method and sequencing platform. 
+        Excludes assembly rows associated with long reads.
 
         RETURNS
-            dataframe (obj): the dataframe object of assembly metadata
+            self.dataframe (obj): An object of class pandas.Dataframe having a two-dimensional data structure with
+            ~500,000 rows (first row contains headers) and 16 columns of different assembly attributes (str, int, float)
         """
 
         self.organize_assembly_method()
