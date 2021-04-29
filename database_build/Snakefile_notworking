@@ -1,0 +1,41 @@
+from datetime import date
+month_year_stamp = date.today().strftime("%b_%Y")
+species_assembly_counts = 'species_counts_' + month_year_stamp + '.txt'
+
+configfile: "config.yaml"
+
+rule species_count:
+    output:
+          species_assembly_counts      
+    shell:
+        "python assemblydb_entrez_query.py {config[email]} {config[api_key]}"
+
+
+rule retrieve_id_list:
+    input:
+        species_assembly_counts
+    output:
+        "id_list_major/{sample}_idlist.txt"
+    shell:
+        "python idlist_retriever.py {config[email]} {config[api_key]} {input}"
+
+
+CATEGORY=['major', 'large', 'interm', 'minor']
+
+import os
+def get_sample():
+    sample = []
+    for category in CATEGORY:
+        filelist = os.listdir('id_list_' + category)
+        for i in range(len(filelist)):
+ 	        sample.append(filelist[i].split('_idlist.txt')[0])
+    
+    return sample
+
+rule obtain_metadata:
+    input:
+        expand("id_list_{category}/{sample}_idlist.txt", category=CATEGORY, sample=get_sample())
+    output:
+        expand("{category}_species_metadata/{sample}_metadata.txt", category=CATEGORY, sample=get_sample())
+    shell:
+        "python metadata_print_filename.py {config[email]} {config[api_key]} id_list_{category} {category}_species_metadata {sample}_idlist.txt"

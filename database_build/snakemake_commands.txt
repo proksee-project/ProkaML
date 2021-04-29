@@ -1,4 +1,6 @@
-(snakemake) $ snakemake --cores 1 id_list_major/Salmonella_enterica_chunk1_idlist.txt 
+# Working command for Snakemake
+
+(snakemake) $ snakemake -s Snakefile_working --cores 1 id_list_major/Salmonella_enterica_chunk1_idlist.txt 
               --config email="arnab22.iitkgp@gmail.com" 
               --config api_key="51efc5e252e63fae1155a67c802bdd8e3e09"
 Building DAG of jobs...
@@ -41,3 +43,11 @@ rule retrieve_id_list:
 1 species processing: Escherichia coli
 2 species processing: Campylobacter jejuni
 .......................................................................
+
+
+# Not working command for Snakemake
+(snakemake) $ snakemake -s Snakefile_notworking --cores 1 major_species_metadata/Salmonella_enterica_chunk1_metadata.txt 
+              --config email="arnab22.iitkgp@gmail.com" 
+              --config api_key="51efc5e252e63fae1155a67c802bdd8e3e09"
+
+# just freezes indefinitely

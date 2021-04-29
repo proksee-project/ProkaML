@@ -18,3 +18,4 @@ rule retrieve_id_list:
         "id_list_major/{sample}_idlist.txt"
     shell:
         "python idlist_retriever.py {config[email]} {config[api_key]} {input}"
+
