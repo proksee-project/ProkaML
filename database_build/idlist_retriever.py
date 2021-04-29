@@ -22,11 +22,10 @@ from Bio import Entrez
 import re
 import argparse
 
-SPECIES_COUNTS = 'species_counts_Oct_2020.txt'
 CHUNK_DIVISOR = 10000
 
 
-def species_select():
+def species_select(input_filename):
 
     # Groups species counts into four categories depending on assembly counts for respective species
     MAJOR_SPECIES_THRESHOLD = 1000
@@ -38,7 +37,7 @@ def species_select():
     species_list_interm = []
     species_list_minor = []
 
-    infile = open(SPECIES_COUNTS, 'r')
+    infile = open(input_filename, 'r')
     for line in infile:
         species_line = line.rstrip().split('\t')
         species_corrected = re.sub(r'[\[\]]', '', species_line[0])
@@ -132,7 +131,6 @@ def species_iterate(species_list=None, out_dir=None):
 
 
 def main():
-    species_all_tuple = species_select()
     my_parser = argparse.ArgumentParser(usage='python %(prog)s [-h] email api_key',
                                         description='Retrieves assembly UIDs from API queries')
     my_parser.add_argument('email',
@@ -141,11 +139,17 @@ def main():
     my_parser.add_argument('api_key',
                            type=str,
                            help='NCBI user API key')
+    my_parser.add_argument('input_file',
+                           type=str,
+                           help='Input file containing two column tab separated entries for ' +
+                                'species and assembly counts')
     args = my_parser.parse_args()
     
     Entrez.email = args.email
     Entrez.api_key = args.api_key
+    input_file = args.input_file
 
+    species_all_tuple = species_select(input_file)
     species_iterate(species_all_tuple[0], 'id_list_major')
     species_iterate(species_all_tuple[1], 'id_list_large')
     species_iterate(species_all_tuple[2], 'id_list_interm')

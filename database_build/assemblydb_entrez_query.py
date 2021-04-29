@@ -124,7 +124,7 @@ def main():
                            help='user email address')
     my_parser.add_argument('api_key',
                            type=str,
-                           help='NCBI user API key')
+                           help='NCBI user API key')                      
     args = my_parser.parse_args()
 
     email = args.email
