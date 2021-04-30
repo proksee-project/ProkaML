@@ -40,11 +40,12 @@ class OrganizeMetadata():
 
     def organize_assembly_method(self):
         """
-        Performs text cleaning of user submitted assembler methods by regular expressions based pattern
-        identification and subsequent appropriate text replacements
+        Re-writes similar assembly methods to a uniform assembly method name. For example: 'Spaded', 'SPAdes v 2.5',
+        'SPAdes v 3.0', 'SPAdes assembler v 3.1.1', 'spades v 13.3' are all re-written to 'SPAdes'. A similar strategy
+        is used for other assembly methods
 
         POST
-            The 'Assembly Method' column data (str) is cleaned for clarity (str)
+            The 'Assembly Method' column (str) of metada is re-written so that similar assembly methods are same and uniform
         """
 
         # Organizing assembly methods represented at least 10 times in the database
@@ -211,11 +212,13 @@ class OrganizeMetadata():
 
     def organize_sequencing_technology(self):
         """
-        Performs text cleaning of user submitted sequencing technologies by regular expressions based pattern
-        identification and subsequent appropriate text replacements
+        Re-writes similar sequencing technologies to a uniform sequencing technology name. For example: 'Illunina', 'Ilumina',
+        'Illumina NovaSeq', 'Illumina NextSeq', 'ILLUMINA' are all re-written to 'Illumina'. A similar strategy
+        is used for other sequencing technologies
 
         POST
-            The 'Sequencing Technology' column data (str) is cleaned for clarity (str)
+            The 'Sequencing Technology' column (str) of metada is re-written so that similar sequencing technologies are same
+            and uniform
         """
 
         # Textual organization of well known sequencing technologies
