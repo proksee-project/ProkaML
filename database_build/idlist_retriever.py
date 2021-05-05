@@ -153,8 +153,8 @@ def main():
     species_iterate(species_all_tuple[0], 'id_list_major')
     species_iterate(species_all_tuple[1], 'id_list_large')
     species_iterate(species_all_tuple[2], 'id_list_interm')
-    species_iterate(species_all_tuple[3], 'id_list_minor')
 
+    # UIDs for minor species (species with < 10 assemblies) are not obtained for lack of useful information
 
 if __name__ == "__main__":
     main()

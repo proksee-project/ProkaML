@@ -95,9 +95,15 @@ def esummary(idlist_batch, species_dicn):
     docsum = Entrez.read(esum, validate=False)
     for j in range(0, len(idlist_batch)):
 
-        '''Retrieving species name from nested dictionary'''
-        species = docsum['DocumentSummarySet']['DocumentSummary'][j]['SpeciesName']
-        species_dicn[species] += 1
+        try:
+            '''Retrieving species name from nested dictionary'''
+            species = docsum['DocumentSummarySet']['DocumentSummary'][j]['SpeciesName']
+            species_dicn[species] += 1
+
+        except IndexError:
+            # Species can't be retrieved due to NCBI server connection issue. Skipping and moving ahead
+
+            pass
 
 
 def species_dicn_write(species_dicn):

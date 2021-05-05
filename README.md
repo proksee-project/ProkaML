@@ -1,7 +1,13 @@
 # proksee-database
 Reference library for microorganisms with different genome assembly metrics and statistics
 
-## proksee-database generation 
+## proksee-database generation (Snakemake automated workflow)
+The generation of **proksee-database** utilizes snakemake workflow to automate complex processes with a single command.  
+Usage: `snakemake -s Snakefile_working --cores 1 --config email="dummy@email.com" --config api_key="dummy_api_key_01234"` 
+where dummy email and API key entries should be replaced with user specific actual values.  
+In summary, snakemake chains together individual python scripts, with their respective input and output dependencies to generate proksee-database. Currently, the database build time is approximately 10 days, which can be reduced by implementing parallel workflows in a cluster environmen (details coming soon). For understanding the operations of individual python scripts, users are requested to refer to the section below.   
+
+## proksee-database generation (step-wise scripts)
 The scripts for generating proksee database comprising genomic attributes of NCBI contig assemblies are in the directory `database_build`. The scripts run biopython API queries on the NCBI database and therefore require the user to provide an API key corresponding to their account. If you dont have an NCBI API key, visit the NCBI login [page](https://www.ncbi.nlm.nih.gov/account/) and create an account using your email. Once you sign in, click on the top right corner on your email ID. This will redirect you to a new page where you can find your API key. You will need to use this API key for most of the scripts within `database_build` directory.  
 
 Step 1: Run `assemblydb_entrez_query.py` . Usage: `python assemblydb_entrez_query.py email api_key`. 
