@@ -1,4 +1,7 @@
 from datetime import date
+import os
+import glob
+
 month_year_stamp = date.today().strftime("%b_%Y")
 species_assembly_counts = 'species_counts_' + month_year_stamp + '.txt'
 
@@ -26,9 +29,11 @@ rule retrieve_id_list:
 
 rule obtain_metadata:
     input:
-        ancient("id_list_{category}")
+        "id_list_{category}"
     output:
         directory("{category}_species_metadata")
     run:
-        for index in range(1, 4):
-            shell("python metadata_print_fileindex.py {config[email]} {config[api_key]} id_list_{wildcards.category} {wildcards.category}_species_metadata {index}")
+        for i in range(0, len(CATEGORY)):
+            id_file_list = glob.glob('id_list_' + CATEGORY[i] + '/*_idlist.txt')
+            for index in range(0, len(id_file_list)):
+                shell("python metadata_print_fileindex.py {config[email]} {config[api_key]} id_list_{wildcards.category} {wildcards.category}_species_metadata {index}")
