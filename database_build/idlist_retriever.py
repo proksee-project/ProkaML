@@ -131,7 +131,7 @@ def species_iterate(species_list=None, out_dir=None):
 
 
 def main():
-    my_parser = argparse.ArgumentParser(usage='python %(prog)s [-h] email api_key',
+    my_parser = argparse.ArgumentParser(usage='python %(prog)s [-h] email api_key input_file',
                                         description='Retrieves assembly UIDs from API queries')
     my_parser.add_argument('email',
                            type=str,

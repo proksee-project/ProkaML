@@ -29,11 +29,13 @@ rule retrieve_id_list:
 
 rule obtain_metadata:
     input:
-        "id_list_{category}"
+        expand("id_list_{category}", category=CATEGORY)
     output:
-        directory("{category}_species_metadata")
+        directory(expand("{category}_species_metadata", category=CATEGORY))
     run:
         for i in range(0, len(CATEGORY)):
             id_file_list = glob.glob('id_list_' + CATEGORY[i] + '/*_idlist.txt')
+            input_dir = 'id_list_' + CATEGORY[i]
+            output_dir = CATEGORY[i] + '_species_metadata'
             for index in range(0, len(id_file_list)):
-                shell("python metadata_print_fileindex.py {config[email]} {config[api_key]} id_list_{wildcards.category} {wildcards.category}_species_metadata {index}")
+                shell("python metadata_print_fileindex.py {config[email]} {config[api_key]} {input_dir} {output_dir} {index}")
