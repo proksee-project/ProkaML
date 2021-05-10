@@ -18,17 +18,18 @@ specific language governing permissions and limitations under the License.
 '''
 
 import numpy as np
+import pandas as pd
 import os
 import re
 from pathlib import Path
 
 START_DIR = Path(__file__).resolve().parents[1]
-MEDIAN_DATABASE_FILE = open(os.path.join(START_DIR, 'species_median_log_metrics.txt'), 'w')
-MEDIAN_DATABASE_FILE.write('Species\tlogn50\tlogcontigcount\tlogl50\tlogtotlen\tlogcoverage\tgccontent\n')
-NORMALIZED_DATABASE_FILE = open(os.path.join(START_DIR, 'well_represented_species_metadata_normalized.txt'), 'w')
+#MEDIAN_DATABASE_FILE = open(os.path.join(START_DIR, 'species_median_log_metrics.txt'), 'w')
+MEDIAN_DATABASE_FILE = open(os.path.join(START_DIR, 'mdb_test.txt'), 'w')
+MEDIAN_DATABASE_FILE.write('Species/Genus\tlogn50\tlogcontigcount\tlogl50\tlogtotlen\tlogcoverage\tgccontent\n')
 
 
-class SpeciesNormalization():
+class TaxonomicalNormalization():
     """
     A class representing species specific normalization of assembly attributes
 
@@ -39,6 +40,7 @@ class SpeciesNormalization():
 
     # Defining constants for column names
     SPECIES = 'Organism Name'
+    GENUS = 'Genus'
     N50 = 'ContigN50'
     LOG_N50 = 'logn50'
     NUM_CONTIGS = 'Contig count'
@@ -64,7 +66,7 @@ class SpeciesNormalization():
 
         self.dataframe = dataframe
 
-    def subset_valid_species(self):
+    def grouping_species(self):
         """
         Subsets species with valid taxonomical groups
 
@@ -72,20 +74,18 @@ class SpeciesNormalization():
             valid_species_dataframe_list (list): list of dataframes. Each dataframe has two-dimensional data structure, with
             number of rows ranging from ten to several thousands, and 16 columns of different assembly attributes (str, int, float)
         """
-        
-        REGEX_JOINING_CHAR = "|"
 
-        # List of regular expressions to exclude invalid species' taxonomy names, can be expanded
-        exclude_species_patterns = ['uncultured',
-                                    'metagenome',
-                                    '^bacterium$'
-                                    ]
-        exclude_species = re.compile(REGEX_JOINING_CHAR.join(exclude_species_patterns))
-        valid_species_dataframe = self.dataframe[~self.dataframe[self.SPECIES].str.contains(exclude_species)]
-        valid_species_group = valid_species_dataframe.groupby(self.SPECIES)
-        valid_species_dataframe_list = [valid_species_group.get_group(x) for x in valid_species_group.groups]
+        species_dataframe_group = self.dataframe.groupby(self.SPECIES)
+        species_dataframe_list = [species_dataframe_group.get_group(x) for x in species_dataframe_group.groups]
 
-        return valid_species_dataframe_list
+        return species_dataframe_list
+
+    def grouping_genus(self):
+
+        genera_dataframe_group = self.dataframe.groupby(self.GENUS)
+        genera_dataframe_list = [genera_dataframe_group.get_group(x) for x in genera_dataframe_group.groups]
+
+        return genera_dataframe_list
 
     def append_logarithm_imputations(self, dataframe):
         """
@@ -103,7 +103,7 @@ class SpeciesNormalization():
         ROUNDING_DIGITS = 3
         ADJUSTED_COVERAGE = 'adj coverage'
         ZERO_COVERAGE_ADJUSTMENT = 0.1
-
+        
         dataframe = dataframe.assign(logn50=round(np.log10(dataframe[self.N50]), ROUNDING_DIGITS))
         dataframe = dataframe.assign(logcontigcount=round(np.log10(dataframe[self.NUM_CONTIGS]), ROUNDING_DIGITS))
         dataframe = dataframe.assign(logl50=round(np.log10(dataframe[self.L50]), ROUNDING_DIGITS))
@@ -216,7 +216,7 @@ class SpeciesNormalization():
 
         return median_gc_content
 
-    def write_median_values(self, dataframe):
+    def write_median_values(self, dataframe, column_index):
         """
         Writes species specific median values of assembly attributes
 
@@ -228,7 +228,7 @@ class SpeciesNormalization():
             species specific median attributes are written to MEDIAN_DATABASE_FILE
         """
 
-        MEDIAN_DATABASE_FILE.write('{}\t'.format(dataframe.iloc[0, 0]))
+        MEDIAN_DATABASE_FILE.write('{}\t'.format(dataframe.iloc[0, column_index]))
         MEDIAN_DATABASE_FILE.write('{}\t'.format(self.get_median_log_n50(dataframe)))
         MEDIAN_DATABASE_FILE.write('{}\t'.format(self.get_median_log_contigcount(dataframe)))
         MEDIAN_DATABASE_FILE.write('{}\t'.format(self.get_median_log_l50(dataframe)))
@@ -237,7 +237,7 @@ class SpeciesNormalization():
         MEDIAN_DATABASE_FILE.write('{}\t'.format(self.get_median_gc_content(dataframe)))
         MEDIAN_DATABASE_FILE.write('\n')
 
-    def normalize_dataframe(self, dataframe):
+    def normalize_dataframe(self, dataframe, taxonomy_resolution):
         """
         Calculates and appends species specific normalized assembly attributes
 
@@ -250,44 +250,58 @@ class SpeciesNormalization():
             and 29 columns of different assembly attributes (str, int, float)
         """
 
-        dataframe = dataframe.assign(logn50_normalized=dataframe[self.LOG_N50] -
-                                     self.get_median_log_n50(dataframe))
-        dataframe = dataframe.assign(logcontigcount_normalized=dataframe[self.LOG_NUM_CONTIGS] -
-                                     self.get_median_log_contigcount(dataframe))
-        dataframe = dataframe.assign(logl50_normalized=dataframe[self.LOG_L50] -
-                                     self.get_median_log_l50(dataframe))
-        dataframe = dataframe.assign(logtotlen_normalized=dataframe[self.LOG_LENGTH] -
-                                     self.get_median_log_totlen(dataframe))
-        dataframe = dataframe.assign(logcoverage_normalized=dataframe[self.LOG_COVERAGE] -
-                                     self.get_median_log_coverage(dataframe))
-        dataframe = dataframe.assign(gccontent_normalized=dataframe[self.GC_CONTENT_IMPUTED] -
-                                     self.get_median_gc_content(dataframe))
+        logn50_normalized = 'logn50_normalized_' + str(taxonomy_resolution)
+        logcontigcount_normalized = 'logcontigcount_normalized_' + str(taxonomy_resolution)
+        logl50_normalized = 'logl50_normalized_' + str(taxonomy_resolution)
+        logtotlen_normalized = 'logtotlen_normalized_' + str(taxonomy_resolution)
+        logcoverage_normalized = 'logcoverage_normalized_' + str(taxonomy_resolution)
+        gccontent_normalized = 'gccontent_normalized_' + str(taxonomy_resolution)
+
+        dataframe[logn50_normalized] = dataframe[self.LOG_N50] - self.get_median_log_n50(dataframe)
+        dataframe[logcontigcount_normalized] = dataframe[self.LOG_NUM_CONTIGS] - self.get_median_log_contigcount(dataframe)
+        dataframe[logl50_normalized] = dataframe[self.LOG_L50] - self.get_median_log_l50(dataframe)
+        dataframe[logtotlen_normalized] = dataframe[self.LOG_LENGTH] - self.get_median_log_totlen(dataframe)
+        dataframe[logcoverage_normalized] = dataframe[self.LOG_COVERAGE] - self.get_median_log_coverage(dataframe)
+        dataframe[gccontent_normalized] = dataframe[self.GC_CONTENT_IMPUTED] - self.get_median_gc_content(dataframe)
 
         return dataframe
 
-    def apply_normalization_to_database(self):
+    def apply_species_normalization_to_database(self):
         """
         Appends normalized attributes to entire database of assembly attributes
 
         POST
             Normalized assembly attributes for every assembly are written to NORMALIZED_DATABASE_FILE
         """
+        
+        SPECIES_TAXONOMY = 'species'
+        SPECIES_COLUMN_INDEX = 0
+        species_aggregated_normalized_dataframe = []
 
-        valid_species_dataframe_list = self.subset_valid_species()
-        species_count = 0
-        separator = '\t'
+        species_dataframe_list = self.grouping_species()
+        for species_dataframe in species_dataframe_list:
+            logarithm_appended_dataframe = self.append_logarithm_imputations(species_dataframe)
+            self.write_median_values(logarithm_appended_dataframe, SPECIES_COLUMN_INDEX)
+            species_normalized_dataframe = self.normalize_dataframe(logarithm_appended_dataframe, SPECIES_TAXONOMY)
+            species_aggregated_normalized_dataframe.append(species_normalized_dataframe)
 
-        for individual_species_dataframe in valid_species_dataframe_list:
-            appended_species_dataframe = self.append_logarithm_imputations(individual_species_dataframe)
-            self.write_median_values(appended_species_dataframe)
-            species_normalized_dataframe = self.normalize_dataframe(appended_species_dataframe)
+        species_aggregated_normalized_dataframe_concatenated = pd.concat(species_aggregated_normalized_dataframe)
 
-            # Column headers are written for first instance only
-            if species_count == 0:
-                header = True
-            else:
-                header = False
+        return species_aggregated_normalized_dataframe_concatenated
 
-            species_normalized_dataframe.to_csv(NORMALIZED_DATABASE_FILE, sep=separator, mode='a',
-                                                header=header, index=False)
-            species_count += 1
+    def apply_genus_normalization_to_database(self):
+
+        GENUS_TAXONOMY = 'genus'
+        GENUS_COLUMN_INDEX = 16
+        genera_normalized_dataframe = []
+
+        genera_dataframe_list = self.grouping_genus()
+        for genus_dataframe in genera_dataframe_list:
+            logarithm_appended_dataframe = self.append_logarithm_imputations(genus_dataframe)
+            self.write_median_values(logarithm_appended_dataframe, GENUS_COLUMN_INDEX)
+            genus_normalized_dataframe = self.normalize_dataframe(logarithm_appended_dataframe, GENUS_TAXONOMY)
+            genera_normalized_dataframe.append(genus_normalized_dataframe)
+
+        genera_aggregated_normalized_dataframe_concatenated = pd.concat(genera_normalized_dataframe)
+
+        return genera_aggregated_normalized_dataframe_concatenated

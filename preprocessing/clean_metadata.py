@@ -17,6 +17,7 @@ CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 '''
 
+import re
 
 class OrganizeMetadata():
     """
@@ -26,6 +27,11 @@ class OrganizeMetadata():
         dataframe (obj): An object of class pandas.Dataframe having a two-dimensional data structure with
         ~500,000 rows (first row contains headers) and 16 columns of different assembly attributes (str, int, float)
     """
+
+    SPECIES = 'Organism Name'
+    ASSEMBLY_METHOD = 'Assembly Method'
+    SEQ_PLATFORM = 'Sequencing Technology'
+    SPECIES_SPLIT_CHAR = ' '
 
     def __init__(self, dataframe):
         """
@@ -49,166 +55,166 @@ class OrganizeMetadata():
         """
 
         # Organizing assembly methods represented at least 10 times in the database
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'.*[Aa]5.*$'},
-                                                {'Assembly Method': 'A5-miseq'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^A[Bb][Yy][Ss]{2}.*$'},
-                                                {'Assembly Method': 'ABYSS'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^[Aa][Ll]{2}[Pp][Aa][Tt][Hh][Ss].*$'},
-                                                {'Assembly Method': 'allpaths'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^AMO[Ss]cmp.*$'},
-                                                {'Assembly Method': 'AMOScmp'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^ARGO.*$'},
-                                                {'Assembly Method': 'ARGO'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'.*[Bb]owtie.*$'},
-                                                {'Assembly Method': 'Bowtie'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^CA.*$'},
-                                                {'Assembly Method': 'Celera'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Celera.*$'},
-                                                {'Assembly Method': 'Celera'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'.*[Cc][Aa][Nn][Uu].*'},
-                                                {'Assembly Method': 'Canu'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^[Cc][Ll][Cc].*$'},
-                                                {'Assembly Method': 'CLC'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'.*DNA[Ss][Tt][Aa][Rr].*$'},
-                                                {'Assembly Method': 'DNASTAR'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Seq[Mm]an.*$'},
-                                                {'Assembly Method': 'DNASTAR'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^[Ee][Dd].*?[Nn][Aa].*$'},
-                                                {'Assembly Method': 'Edena'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'.*[Ff][Aa][Ll][Cc][Oo][Nn].*$'},
-                                                {'Assembly Method': 'Falcon'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Flye.*$'},
-                                                {'Assembly Method': 'Flye'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Geneious.*$'},
-                                                {'Assembly Method': 'Geneious'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^[Gg][Ss].*$'},
-                                                {'Assembly Method': 'GS'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Roche\sGS.*$'},
-                                                {'Assembly Method': 'GS'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'.*[Hh][Gg][Aa][Pp].*$'},
-                                                {'Assembly Method': 'HGAP'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'.*Hierarchical\sGenome.*$'},
-                                                {'Assembly Method': 'HGAP'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'.*[Ii][Dd][Bb][Aa].*$'},
-                                                {'Assembly Method': 'IDBA_UD'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^INNU[Cc][Aa].*$'},
-                                                {'Assembly Method': 'INNUca'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^MaSu[Rr]CA.*'},
-                                                {'Assembly Method': 'MaSuRCA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^[Mm][Ee][Gg][Aa][Hh][Ii][Tt].*$'},
-                                                {'Assembly Method': 'Megahit'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^MetaBAT.*$'},
-                                                {'Assembly Method': 'MetaBAT'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^[Mm][Ii][Rr][Aa].*$'},
-                                                {'Assembly Method': 'MIRA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'.*[Nn]ewbler.*$'},
-                                                {'Assembly Method': 'Newbler'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^PATRIC.*$'},
-                                                {'Assembly Method': 'PATRIC'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^pilon.*$'},
-                                                {'Assembly Method': 'pilon'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Platanus.*$'},
-                                                {'Assembly Method': 'Platanus'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^ProkaryoteAssembly.*$'},
-                                                {'Assembly Method': 'ProkaryoteAssembly'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^QUAST.*$'},
-                                                {'Assembly Method': 'QUAST'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Ray.*$'},
-                                                {'Assembly Method': 'Ray'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^[Ss]hovill.*$'},
-                                                {'Assembly Method': 'Shovill'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^[Ss][Kk][Ee][Ss][Aa].*$'},
-                                                {'Assembly Method': 'SKESA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'.*SMRT.*$'},
-                                                {'Assembly Method': 'SMRT'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^S[Oo][Aa][Pp].*$'},
-                                                {'Assembly Method': 'SOAPdenovo'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'.*[Ss][Pp][Aa][Dd][Ee].*$'},
-                                                {'Assembly Method': 'SPAdes'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^[Uu]ni[Cc]y.*$'},
-                                                {'Assembly Method': 'unicycler'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'.*[Vv]el.+?t.*$'},
-                                                {'Assembly Method': 'Velvet'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^[Ww]gs.*$'},
-                                                {'Assembly Method': 'WgsAssembler'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'.*[Aa]5.*$'},
+                                                {self.ASSEMBLY_METHOD: 'A5-miseq'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^A[Bb][Yy][Ss]{2}.*$'},
+                                                {self.ASSEMBLY_METHOD: 'ABYSS'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^[Aa][Ll]{2}[Pp][Aa][Tt][Hh][Ss].*$'},
+                                                {self.ASSEMBLY_METHOD: 'allpaths'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^AMO[Ss]cmp.*$'},
+                                                {self.ASSEMBLY_METHOD: 'AMOScmp'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^ARGO.*$'},
+                                                {self.ASSEMBLY_METHOD: 'ARGO'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'.*[Bb]owtie.*$'},
+                                                {self.ASSEMBLY_METHOD: 'Bowtie'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^CA.*$'},
+                                                {self.ASSEMBLY_METHOD: 'Celera'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Celera.*$'},
+                                                {self.ASSEMBLY_METHOD: 'Celera'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'.*[Cc][Aa][Nn][Uu].*'},
+                                                {self.ASSEMBLY_METHOD: 'Canu'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^[Cc][Ll][Cc].*$'},
+                                                {self.ASSEMBLY_METHOD: 'CLC'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'.*DNA[Ss][Tt][Aa][Rr].*$'},
+                                                {self.ASSEMBLY_METHOD: 'DNASTAR'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Seq[Mm]an.*$'},
+                                                {self.ASSEMBLY_METHOD: 'DNASTAR'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^[Ee][Dd].*?[Nn][Aa].*$'},
+                                                {self.ASSEMBLY_METHOD: 'Edena'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'.*[Ff][Aa][Ll][Cc][Oo][Nn].*$'},
+                                                {self.ASSEMBLY_METHOD: 'Falcon'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Flye.*$'},
+                                                {self.ASSEMBLY_METHOD: 'Flye'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Geneious.*$'},
+                                                {self.ASSEMBLY_METHOD: 'Geneious'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^[Gg][Ss].*$'},
+                                                {self.ASSEMBLY_METHOD: 'GS'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Roche\sGS.*$'},
+                                                {self.ASSEMBLY_METHOD: 'GS'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'.*[Hh][Gg][Aa][Pp].*$'},
+                                                {self.ASSEMBLY_METHOD: 'HGAP'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'.*Hierarchical\sGenome.*$'},
+                                                {self.ASSEMBLY_METHOD: 'HGAP'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'.*[Ii][Dd][Bb][Aa].*$'},
+                                                {self.ASSEMBLY_METHOD: 'IDBA_UD'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^INNU[Cc][Aa].*$'},
+                                                {self.ASSEMBLY_METHOD: 'INNUca'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^MaSu[Rr]CA.*'},
+                                                {self.ASSEMBLY_METHOD: 'MaSuRCA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^[Mm][Ee][Gg][Aa][Hh][Ii][Tt].*$'},
+                                                {self.ASSEMBLY_METHOD: 'Megahit'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^MetaBAT.*$'},
+                                                {self.ASSEMBLY_METHOD: 'MetaBAT'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^[Mm][Ii][Rr][Aa].*$'},
+                                                {self.ASSEMBLY_METHOD: 'MIRA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'.*[Nn]ewbler.*$'},
+                                                {self.ASSEMBLY_METHOD: 'Newbler'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^PATRIC.*$'},
+                                                {self.ASSEMBLY_METHOD: 'PATRIC'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^pilon.*$'},
+                                                {self.ASSEMBLY_METHOD: 'pilon'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Platanus.*$'},
+                                                {self.ASSEMBLY_METHOD: 'Platanus'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^ProkaryoteAssembly.*$'},
+                                                {self.ASSEMBLY_METHOD: 'ProkaryoteAssembly'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^QUAST.*$'},
+                                                {self.ASSEMBLY_METHOD: 'QUAST'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Ray.*$'},
+                                                {self.ASSEMBLY_METHOD: 'Ray'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^[Ss]hovill.*$'},
+                                                {self.ASSEMBLY_METHOD: 'Shovill'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^[Ss][Kk][Ee][Ss][Aa].*$'},
+                                                {self.ASSEMBLY_METHOD: 'SKESA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'.*SMRT.*$'},
+                                                {self.ASSEMBLY_METHOD: 'SMRT'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^S[Oo][Aa][Pp].*$'},
+                                                {self.ASSEMBLY_METHOD: 'SOAPdenovo'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'.*[Ss][Pp][Aa][Dd][Ee].*$'},
+                                                {self.ASSEMBLY_METHOD: 'SPAdes'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^[Uu]ni[Cc]y.*$'},
+                                                {self.ASSEMBLY_METHOD: 'unicycler'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'.*[Vv]el.+?t.*$'},
+                                                {self.ASSEMBLY_METHOD: 'Velvet'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^[Ww]gs.*$'},
+                                                {self.ASSEMBLY_METHOD: 'WgsAssembler'}, regex=True)
 
         # Replacing assembly methods with < 10 counts with NA
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Allora.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Arachne.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Artemis.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^As\s.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^BOI.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^breseq.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^BWA.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^CAP3.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^CISA.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Clover.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^custom.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^De.*?[Nn]ovo.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Galaxy.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^GeneStudio.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Illumina.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'.*in-house.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^IonTorrent.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Kbase.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Lasergene.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Mauve.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Microbe.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^[Mm]inia.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^MIX.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^MyPro.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^nanopolish.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^NextG[Ee][Nn]e.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^NovoAlign.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^other.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Parallel.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^PRJNA.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^prokka.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Shasta.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^SoftGenetics.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^SSPACE.*'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^TRIMMOMATIC.*'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Turing.*'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^Unknown.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Assembly Method': r'^VAAL.*$'},
-                                                {'Assembly Method': 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Allora.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Arachne.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Artemis.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^As\s.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^BOI.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^breseq.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^BWA.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^CAP3.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^CISA.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Clover.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^custom.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^De.*?[Nn]ovo.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Galaxy.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^GeneStudio.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Illumina.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'.*in-house.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^IonTorrent.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Kbase.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Lasergene.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Mauve.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Microbe.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^[Mm]inia.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^MIX.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^MyPro.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^nanopolish.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^NextG[Ee][Nn]e.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^NovoAlign.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^other.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Parallel.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^PRJNA.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^prokka.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Shasta.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^SoftGenetics.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^SSPACE.*'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^TRIMMOMATIC.*'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Turing.*'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^Unknown.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^VAAL.*$'},
+                                                {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
 
     def organize_sequencing_technology(self):
         """
@@ -222,42 +228,42 @@ class OrganizeMetadata():
         """
 
         # Textual organization of well known sequencing technologies
-        self.dataframe = self.dataframe.replace({'Sequencing Technology': r'.*454.*$'},
-                                                {'Sequencing Technology': '454'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Sequencing Technology': r'^BGI.*$'},
-                                                {'Sequencing Technology': 'BGI'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Sequencing Technology': r'^Complete\sGenomics.*$'},
-                                                {'Sequencing Technology': 'CompleteGenomics'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Sequencing Technology': r'^DNB-Seq.*$'},
-                                                {'Sequencing Technology': 'BGI'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Sequencing Technology': r'^[Ii].*?[Aa].*$'},
-                                                {'Sequencing Technology': 'Illumina'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Sequencing Technology': r'^[HMhm][Ii][Ss][Ee][Qq].*$'},
-                                                {'Sequencing Technology': 'Illumina'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Sequencing Technology': r'^[Nn]ext[Ss][Ee][Qq].*$'},
-                                                {'Sequencing Technology': 'Illumina'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Sequencing Technology': r'^[Nn]ova[Ss][Ee][Qq].*$'},
-                                                {'Sequencing Technology': 'Illumina'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Sequencing Technology': r'^Nextera.*$'},
-                                                {'Sequencing Technology': 'Illumina'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Sequencing Technology': r'^[Ii][Oo][Nn].*$'},
-                                                {'Sequencing Technology': 'IonTorrent'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Sequencing Technology': r'^Oxford\sNanopore.*$'},
-                                                {'Sequencing Technology': 'OxfordNanopore'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Sequencing Technology': r'.*Min[Ii][Oo][Nn].*$'},
-                                                {'Sequencing Technology': 'OxfordNanopore'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Sequencing Technology': r'^[Pp]ac[Bb]io.*$'},
-                                                {'Sequencing Technology': 'PacBio'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Sequencing Technology': r'^Sanger.*$'},
-                                                {'Sequencing Technology': 'Sanger'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Sequencing Technology': r'^Solexa.*$'},
-                                                {'Sequencing Technology': 'Solexa'}, regex=True)
-        self.dataframe = self.dataframe.replace({'Sequencing Technology': r'.*[Ss][Oo][Ll]i[Dd].*$'},
-                                                {'Sequencing Technology': 'SOLiD'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.SEQ_PLATFORM: r'.*454.*$'},
+                                                {self.SEQ_PLATFORM: '454'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.SEQ_PLATFORM: r'^BGI.*$'},
+                                                {self.SEQ_PLATFORM: 'BGI'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.SEQ_PLATFORM: r'^Complete\sGenomics.*$'},
+                                                {self.SEQ_PLATFORM: 'CompleteGenomics'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.SEQ_PLATFORM: r'^DNB-Seq.*$'},
+                                                {self.SEQ_PLATFORM: 'BGI'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.SEQ_PLATFORM: r'^[Ii].*?[Aa].*$'},
+                                                {self.SEQ_PLATFORM: 'Illumina'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.SEQ_PLATFORM: r'^[HMhm][Ii][Ss][Ee][Qq].*$'},
+                                                {self.SEQ_PLATFORM: 'Illumina'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.SEQ_PLATFORM: r'^[Nn]ext[Ss][Ee][Qq].*$'},
+                                                {self.SEQ_PLATFORM: 'Illumina'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.SEQ_PLATFORM: r'^[Nn]ova[Ss][Ee][Qq].*$'},
+                                                {self.SEQ_PLATFORM: 'Illumina'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.SEQ_PLATFORM: r'^Nextera.*$'},
+                                                {self.SEQ_PLATFORM: 'Illumina'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.SEQ_PLATFORM: r'^[Ii][Oo][Nn].*$'},
+                                                {self.SEQ_PLATFORM: 'IonTorrent'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.SEQ_PLATFORM: r'^Oxford\sNanopore.*$'},
+                                                {self.SEQ_PLATFORM: 'OxfordNanopore'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.SEQ_PLATFORM: r'.*Min[Ii][Oo][Nn].*$'},
+                                                {self.SEQ_PLATFORM: 'OxfordNanopore'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.SEQ_PLATFORM: r'^[Pp]ac[Bb]io.*$'},
+                                                {self.SEQ_PLATFORM: 'PacBio'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.SEQ_PLATFORM: r'^Sanger.*$'},
+                                                {self.SEQ_PLATFORM: 'Sanger'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.SEQ_PLATFORM: r'^Solexa.*$'},
+                                                {self.SEQ_PLATFORM: 'Solexa'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.SEQ_PLATFORM: r'.*[Ss][Oo][Ll]i[Dd].*$'},
+                                                {self.SEQ_PLATFORM: 'SOLiD'}, regex=True)
 
         # Replacing sequencing technologies that are not well known with 'NA'
-        self.dataframe = self.dataframe.replace({'Sequencing Technology': r'.*Others.*$'},
-                                                {'Sequencing Technology': 'NA'}, regex=True)
+        self.dataframe = self.dataframe.replace({self.SEQ_PLATFORM: r'.*Others.*$'},
+                                                {self.SEQ_PLATFORM: 'NA'}, regex=True)
 
     def identify_long_reads(self):
         """
@@ -268,16 +274,43 @@ class OrganizeMetadata():
             assemblies
         """
 
-        long_read_index = self.dataframe[(self.dataframe['Sequencing Technology'] == 'OxfordNanopore') |
-                                         (self.dataframe['Sequencing Technology'] == 'PacBio') |
-                                         (self.dataframe['Assembly Method'] == 'Canu') |
-                                         (self.dataframe['Assembly Method'] == 'Falcon') |
-                                         (self.dataframe['Assembly Method'] == 'Flye') |
-                                         (self.dataframe['Assembly Method'] == 'HGAP') |
-                                         (self.dataframe['Assembly Method'] == 'SMRT') |
-                                         (self.dataframe['Assembly Method'] == 'pilon')].index
+        long_read_index = self.dataframe[(self.dataframe[self.SEQ_PLATFORM] == 'OxfordNanopore') |
+                                         (self.dataframe[self.SEQ_PLATFORM] == 'PacBio') |
+                                         (self.dataframe[self.ASSEMBLY_METHOD] == 'Canu') |
+                                         (self.dataframe[self.ASSEMBLY_METHOD] == 'Falcon') |
+                                         (self.dataframe[self.ASSEMBLY_METHOD] == 'Flye') |
+                                         (self.dataframe[self.ASSEMBLY_METHOD] == 'HGAP') |
+                                         (self.dataframe[self.ASSEMBLY_METHOD] == 'SMRT') |
+                                         (self.dataframe[self.ASSEMBLY_METHOD] == 'pilon')].index
 
         return long_read_index
+
+    def select_taxonomically_valid_species(self):
+        """
+        Subsets species with valid taxonomical groups
+
+        RETURNS
+            valid_species_dataframe_list (list): list of dataframes. Each dataframe has two-dimensional data structure, with
+            number of rows ranging from ten to several thousands, and 16 columns of different assembly attributes (str, int, float)
+        """
+
+        REGEX_JOINING_CHAR = '|'
+        SPECIES_EXPECTED_LENGTH = 2
+
+        # List of regular expressions to exclude invalid species' taxonomy names, can be expanded
+        EXCLUDE_PATTERNS = ['uncultured', 'metagenome']
+        exclude_species = re.compile(REGEX_JOINING_CHAR.join(EXCLUDE_PATTERNS))
+
+        inclusion_condition1 = (~self.dataframe[self.SPECIES].str.contains(exclude_species))
+        inclusion_condition2 = (self.dataframe[self.SPECIES].str.split(self.SPECIES_SPLIT_CHAR).str.len() == SPECIES_EXPECTED_LENGTH)
+        self.dataframe = self.dataframe[inclusion_condition1 & inclusion_condition2]
+
+    def assign_genus(self):
+        GENUS_INDEX = 0
+        self.dataframe = self.dataframe.assign(Genus=
+                                               self.dataframe[self.SPECIES].str.split(self.SPECIES_SPLIT_CHAR).str[GENUS_INDEX])
+
+        return self.dataframe
 
     def prenormalize_metadata(self):
         """
@@ -293,5 +326,7 @@ class OrganizeMetadata():
         self.organize_sequencing_technology()
         long_read_index = self.identify_long_reads()
         self.dataframe.drop(long_read_index, inplace=True)
+        self.select_taxonomically_valid_species()
+        prenormalized_dataframe = self.assign_genus()
 
-        return self.dataframe
+        return prenormalized_dataframe
