@@ -19,7 +19,7 @@ specific language governing permissions and limitations under the License.
 
 import re
 
-class OrganizeMetadata():
+class CleanMetadata():
     """
     A class representing text uniformization of assembly methods and sequencing technologies in NCBI assembly database
 
@@ -299,11 +299,23 @@ class OrganizeMetadata():
 
         # List of regular expressions to exclude invalid species' taxonomy names, can be expanded
         EXCLUDE_PATTERNS = ['uncultured', 'metagenome']
-        exclude_species = re.compile(REGEX_JOINING_CHAR.join(EXCLUDE_PATTERNS))
+        exclude_species_patterns = re.compile(REGEX_JOINING_CHAR.join(EXCLUDE_PATTERNS))
 
-        inclusion_condition1 = (~self.dataframe[self.SPECIES].str.contains(exclude_species))
-        inclusion_condition2 = (self.dataframe[self.SPECIES].str.split(self.SPECIES_SPLIT_CHAR).str.len() == SPECIES_EXPECTED_LENGTH)
-        self.dataframe = self.dataframe[inclusion_condition1 & inclusion_condition2]
+        # List of unexpected special characters in species' names
+        UNEXPECTED_SPECIAL_CHARS = ['\[','\]']
+        REPLACED_CHAR = ''
+        unexpected_species_chars = re.compile(REGEX_JOINING_CHAR.join(UNEXPECTED_SPECIAL_CHARS))
+
+        # Defining rules for filtering taxonomically valid species
+        # Filtering condition 1: remove species with strings matching to EXCLUDE_PATTERNS
+        filtering_condition1 = ~self.dataframe[self.SPECIES].str.contains(exclude_species_patterns)
+
+        # Filtering condition 2: select only those species whose number of words equal SPECIES_EXPECTED_LENGTH
+        filtering_condition2 = self.dataframe[self.SPECIES].str.split(self.SPECIES_SPLIT_CHAR).str.len() == SPECIES_EXPECTED_LENGTH
+        self.dataframe = self.dataframe[filtering_condition1 & filtering_condition2]
+
+        # Filtering condition 3: remove unexpected characters in species' names
+        self.dataframe[self.SPECIES] = self.dataframe[self.SPECIES].str.replace(unexpected_species_chars, REPLACED_CHAR, regex=True)
 
     def assign_genus(self):
         GENUS_INDEX = 0
@@ -312,7 +324,7 @@ class OrganizeMetadata():
 
         return self.dataframe
 
-    def prenormalize_metadata(self):
+    def clean_metadata(self):
         """
         Performs text cleaning by string replacement of assembly method and sequencing platform. 
         Excludes assembly rows associated with long reads.
@@ -327,6 +339,6 @@ class OrganizeMetadata():
         long_read_index = self.identify_long_reads()
         self.dataframe.drop(long_read_index, inplace=True)
         self.select_taxonomically_valid_species()
-        prenormalized_dataframe = self.assign_genus()
+        cleaned_dataframe = self.assign_genus()
 
-        return prenormalized_dataframe
+        return cleaned_dataframe

@@ -24,8 +24,7 @@ import re
 from pathlib import Path
 
 START_DIR = Path(__file__).resolve().parents[1]
-#MEDIAN_DATABASE_FILE = open(os.path.join(START_DIR, 'species_median_log_metrics.txt'), 'w')
-MEDIAN_DATABASE_FILE = open(os.path.join(START_DIR, 'mdb_test.txt'), 'w')
+MEDIAN_DATABASE_FILE = open(os.path.join(START_DIR, 'lineage_median_log_metrics.txt'), 'w')
 MEDIAN_DATABASE_FILE.write('Species/Genus\tlogn50\tlogcontigcount\tlogl50\tlogtotlen\tlogcoverage\tgccontent\n')
 
 
@@ -266,14 +265,14 @@ class TaxonomicalNormalization():
 
         return dataframe
 
-    def apply_species_normalization_to_database(self):
+    def apply_species_normalization(self):
         """
         Appends normalized attributes to entire database of assembly attributes
 
         POST
             Normalized assembly attributes for every assembly are written to NORMALIZED_DATABASE_FILE
         """
-        
+
         SPECIES_TAXONOMY = 'species'
         SPECIES_COLUMN_INDEX = 0
         species_aggregated_normalized_dataframe = []
@@ -289,7 +288,7 @@ class TaxonomicalNormalization():
 
         return species_aggregated_normalized_dataframe_concatenated
 
-    def apply_genus_normalization_to_database(self):
+    def apply_genus_normalization(self):
 
         GENUS_TAXONOMY = 'genus'
         GENUS_COLUMN_INDEX = 16
