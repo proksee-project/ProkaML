@@ -42,7 +42,12 @@ joblib.dump(best_fit_model,
             os.path.join(START_DIR, MODEL_FILENAME),
             compress=(COMPRESSION_TYPE, COMPRESSION_LEVEL))
 
-dataframe_appended_probability = classifier.apply_model_to_database(best_fit_model)
-dataframe_appended_probability.to_csv(os.path.join(START_DIR, PROBABILITY_DATABASE_FILE),
-                                      sep=SEPARATOR, mode='w', index=False)
+taxonomy_resolution1 = 'species'
+classifier.apply_model_to_database(best_fit_model, taxonomy_resolution1)
+
+taxonomy_resolution2 = 'genus'
+classifier.apply_model_to_database(best_fit_model, taxonomy_resolution2)
+
+dataframe.to_csv(os.path.join(START_DIR, PROBABILITY_DATABASE_FILE),
+                              sep=SEPARATOR, mode='w', index=False)
 print('Assembly QC prediction probabilities appended to database')
