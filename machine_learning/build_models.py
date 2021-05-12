@@ -46,7 +46,7 @@ class MachineLearningClassifier():
         ~500,000 rows (first row contains headers) and 29 columns of different assembly attributes (str, int, float)
     """
 
-    def __init__(self, dataframe):
+    def __init__(self, dataframe, training_taxon):
         """
         Initializes the MachineLearningClassifier class
 
@@ -56,14 +56,15 @@ class MachineLearningClassifier():
         """
 
         self.dataframe = dataframe
+        self.training_taxon = training_taxon
 
-    def select_columns_of_interest(self, taxonomy_resolution):
+    def select_columns_of_interest(self, input_taxon):
 
-        logn50_normalized = 'logn50_normalized_' + str(taxonomy_resolution) 
-        logcontigcount_normalized = 'logcontigcount_normalized_' + str(taxonomy_resolution)
-        logl50_normalized = 'logl50_normalized_' + str(taxonomy_resolution)
-        logtotlen_normalized = 'logtotlen_normalized_' + str(taxonomy_resolution)
-        gccontent_normalized = 'gccontent_normalized_' + str(taxonomy_resolution)
+        logn50_normalized = 'logn50_normalized_' + str(input_taxon) 
+        logcontigcount_normalized = 'logcontigcount_normalized_' + str(input_taxon)
+        logl50_normalized = 'logl50_normalized_' + str(input_taxon)
+        logtotlen_normalized = 'logtotlen_normalized_' + str(input_taxon)
+        gccontent_normalized = 'gccontent_normalized_' + str(input_taxon)
         label = 'label'
 
         columns_of_interest = [logn50_normalized, logcontigcount_normalized, logl50_normalized, logtotlen_normalized,
@@ -95,8 +96,7 @@ class MachineLearningClassifier():
         RefSeq_excluded_multi_isolate = RefSeq_excluded_multi_isolate.assign(label=exclusion_label)
 
         # Creating dataframes of inclusion and exclusion datasets with columns of interest
-        taxonomy_resolution = 'species'
-        columns_of_interest = self.select_columns_of_interest(taxonomy_resolution)
+        columns_of_interest = self.select_columns_of_interest(self.training_taxon)
         inclusion_data = RefSeq_included_data[columns_of_interest]
         exclusion_data = RefSeq_excluded_multi_isolate[columns_of_interest]
 
@@ -118,7 +118,6 @@ class MachineLearningClassifier():
 
         list_models_and_scores = []
         N_FOLD_CV = 10
-        taxonomy_resolution = 'species'
 
         for i in range(0, num_iterations):
 
@@ -127,8 +126,8 @@ class MachineLearningClassifier():
             integrated_data = pd.concat([inclusion_data_balanced, exclusion_data], ignore_index=True)
 
             # Defining feature space and label vector
-            feature_space = integrated_data.drop(self.select_columns_of_interest(taxonomy_resolution)[-1], axis=1)
-            label_vector = integrated_data[self.select_columns_of_interest(taxonomy_resolution)[-1]]
+            feature_space = integrated_data.drop(self.select_columns_of_interest(self.training_taxon)[-1], axis=1)
+            label_vector = integrated_data[self.select_columns_of_interest(self.training_taxon)[-1]]
 
             # Fitting random forests model to the training data
             rfc.fit(feature_space, label_vector)
@@ -161,22 +160,3 @@ class MachineLearningClassifier():
         best_fit_model = list_models_and_scores[max_index][CLASSIFIER_MODEL_INDEX]
 
         return best_fit_model
-
-    def apply_model_to_database(self, best_fit_model, taxonomy_resolution):
-        """
-        Applies best fitting model to entire database
-
-        PARAMETERS
-            best_fit_model (obj.): object of class RandomForestClassifier with highest average cross-validation score
-
-        RETURNS
-            self.dataframe (obj.): object of class pandas.DataFrame having a two-dimensional data structure with
-            ~500,000 rows (first row contains headers) and 30 columns of different assembly attributes (str, int, float)
-        """
-
-        PREDICTION_COLUMN = 'RefSeq_'+ str(taxonomy_resolution) + '_prob'
-        columns_of_interest = self.select_columns_of_interest(taxonomy_resolution)
-        database_dataframe = self.dataframe[columns_of_interest[:-1]]
-
-        # Predicting assembly QC probability and assigning prediction probability column to database
-        self.dataframe[PREDICTION_COLUMN] = best_fit_model.predict_proba(database_dataframe)[:, 0]
