@@ -60,24 +60,28 @@ joblib.dump(genus_best_fit_model,
             os.path.join(START_DIR, model_filename),
             compress=(COMPRESSION_TYPE, COMPRESSION_LEVEL))
 
+print("Predicting species normalized attributes with species' model")
 training_taxon1 = SPECIES_TAXON
 testing_taxon1 = SPECIES_TAXON
 prediction1 = MachineLearningPrediction(dataframe, species_best_fit_model, training_taxon1, testing_taxon1)
 prediction1.apply_model_to_database()
 
+print("Predicting genus normalized attributes with species' model")
 training_taxon2 = SPECIES_TAXON
 testing_taxon2 = GENUS_TAXON
 prediction2 = MachineLearningPrediction(dataframe, species_best_fit_model, training_taxon2, testing_taxon2)
 prediction2.apply_model_to_database()
 
+print("Predicting genus normalized attributes with genus' model")
 training_taxon3 = GENUS_TAXON
 testing_taxon3 = GENUS_TAXON
-prediction3 = MachineLearningPrediction(dataframe, species_best_fit_model, training_taxon3, testing_taxon3)
+prediction3 = MachineLearningPrediction(dataframe, genus_best_fit_model, training_taxon3, testing_taxon3)
 prediction3.apply_model_to_database()
 
+print("Predicting species normalized attributes with genus' model")
 training_taxon4 = GENUS_TAXON
 testing_taxon4 = SPECIES_TAXON
-prediction4 = MachineLearningPrediction(dataframe, species_best_fit_model, training_taxon4, testing_taxon4)
+prediction4 = MachineLearningPrediction(dataframe, genus_best_fit_model, training_taxon4, testing_taxon4)
 prediction4.apply_model_to_database()
 
 dataframe.to_csv(os.path.join(START_DIR, PROBABILITY_DATABASE_FILE),

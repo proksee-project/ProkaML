@@ -322,8 +322,6 @@ class CleanMetadata():
         self.dataframe = self.dataframe.assign(Genus=
                                                self.dataframe[self.SPECIES].str.split(self.SPECIES_SPLIT_CHAR).str[GENUS_INDEX])
 
-        return self.dataframe
-
     def clean_metadata(self):
         """
         Performs text cleaning by string replacement of assembly method and sequencing platform. 
@@ -339,6 +337,6 @@ class CleanMetadata():
         long_read_index = self.identify_long_reads()
         self.dataframe.drop(long_read_index, inplace=True)
         self.select_taxonomically_valid_species()
-        cleaned_dataframe = self.assign_genus()
+        self.assign_genus()
 
-        return cleaned_dataframe
+        return self.dataframe

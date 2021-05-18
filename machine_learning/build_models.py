@@ -149,6 +149,7 @@ class MachineLearningClassifier():
         """
 
         inclusion_data, exclusion_data = self.curate_labels()
+        print(inclusion_data, exclusion_data)
         num_iterations = 10
         list_models_and_scores = self.generate_models(inclusion_data, exclusion_data, num_iterations)
         CLASSIFIER_MODEL_INDEX = 0

@@ -21,32 +21,44 @@ import os
 import pandas as pd
 from pathlib import Path
 from clean_metadata import CleanMetadata
-from preprocess_metadata import TaxonomicalNormalization
+from calculate_log_median import MedianNormalization
+from normalize_species import SpeciesNormalization
+from normalize_genus import GenusNormalization
+
 
 START_DIR = Path(__file__).resolve().parents[1]
 ATTRIBUTE_DATABASE_FILE = '{}/well_represented_species_metadata_added_attributes.txt'.format(str(START_DIR))
-NORMALIZED_DATABASE_FILE = open(os.path.join(START_DIR, 'well_represented_species_metadata_normalized.txt'), 'w')
 SEPARATOR = '\t'
+LOW_MEMORY = False
+INDEX = False
+INDEX_COL = False
+MEDIAN_DATABASE_FILE = os.path.join(START_DIR, 'lineage_median_log_metrics.txt')
+NORMALIZED_DATABASE_FILE = os.path.join(START_DIR, 'well_represented_species_metadata_normalized.txt')
 
-starting_dataframe = pd.read_csv(ATTRIBUTE_DATABASE_FILE, low_memory=False, sep=SEPARATOR)
+starting_dataframe = pd.read_csv(ATTRIBUTE_DATABASE_FILE, low_memory=LOW_MEMORY, sep=SEPARATOR)
 organize_dataframe = CleanMetadata(starting_dataframe)
 cleaned_dataframe = organize_dataframe.clean_metadata()
-print('Pre-normalization step complete. Assembly methods and sequencing technologies are curated. ', end='')
-print('Long read assemblies have been excluded')
+print('Pre-normalization step complete.')
+print('.....Assembly methods and sequencing technologies are curated.')
+print('.....Long read assemblies are excluded.')
+print('.....Species with invalid taxonomy names are excluded.')
+print(".....Genus' column is appended to database.")
 
-taxonomical_normalization = TaxonomicalNormalization(cleaned_dataframe)
-species_normalized_dataframe = taxonomical_normalization.apply_species_normalization()
-genus_normalized_dataframe = taxonomical_normalization.apply_genus_normalization()
+species_normalization = SpeciesNormalization(cleaned_dataframe)
+with open(MEDIAN_DATABASE_FILE, 'w') as median_db_write:
+    median_db_write.write('Species/Genus\tlogn50\tlogcontigcount\tlogl50\tlogtotlen\tlogcoverage\tGCcontent\n')
+    species_normalized_dataframe = species_normalization.apply_species_normalization(median_db_write)
 
-GENBANK_ID = 'Genbank Accession'
-REFSEQ_ID = 'Refseq Accession'
-MERGE_TYPE = 'inner'
-COLUMNS_TO_MERGE = [GENBANK_ID, REFSEQ_ID, 'logn50_normalized_genus', 'logcontigcount_normalized_genus', 'logl50_normalized_genus',
-                   'logtotlen_normalized_genus', 'logcoverage_normalized_genus', 'gccontent_normalized_genus']
-merged_normalized_dataframe = species_normalized_dataframe.merge(genus_normalized_dataframe[COLUMNS_TO_MERGE],
-                                                                 on=[GENBANK_ID, REFSEQ_ID],
-                                                                 how=MERGE_TYPE)
-merged_normalized_dataframe.to_csv(NORMALIZED_DATABASE_FILE, sep=SEPARATOR, mode='w', index=False)
-print('Post-normalization step complete. Metadata with appended normalized attributes ', end='')
-print("are written to 'well_represented_species_metadata_normalized.txt'")
-print("Database of species/genus specific median attributes are written to 'lineage_median_log_metrics.txt'")
+print("Database of species specific median attributes are written to 'lineage_median_log_metrics.txt'.")
+print("Species' normalized attributes are calculated.")
+
+species_median_dataframe = pd.read_csv(MEDIAN_DATABASE_FILE, sep=SEPARATOR, index_col=INDEX_COL)
+genus_normalization = GenusNormalization(species_median_dataframe, species_normalized_dataframe)
+with open(MEDIAN_DATABASE_FILE, 'a') as median_db_append:
+    genus_normalization.write_median_values(median_db_append)
+
+genus_normalized_dataframe = genus_normalization.apply_genus_normalization()
+genus_normalized_dataframe.to_csv(NORMALIZED_DATABASE_FILE, sep=SEPARATOR, index=INDEX)
+print("Database of genus specific median attributes are appended to 'lineage_median_log_metrics.txt'.")
+print("Genus' normalized attributes are calculated.")
+print("Species' and genus' normalized attributes for entire database are written to 'well_represented_species_metadata_normalized.txt'.")
