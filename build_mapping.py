@@ -39,13 +39,10 @@ merged: a NCBI file mapping old NCBI accession IDs to their new, merged NCBI acc
 
 As of 2021-06-23, the following files were used when building a mapping file:
 
-mash_info: output of 'mash info -t' on this sketch: https://gembox.cbcb.umd.edu/mash/refseq.genomes.k21s1000.msh
-
-ranked_lineage: rankedlineage.dmp in https://ftp.ncbi.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz
-
-full_name_lineage: fullnamelineage.dmp in https://ftp.ncbi.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz
-
-merged: merged.dmp in https://ftp.ncbi.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz
+- mash_info: output of 'mash info -t' on this sketch: https://gembox.cbcb.umd.edu/mash/refseq.genomes.k21s1000.msh
+- ranked_lineage: rankedlineage.dmp in https://ftp.ncbi.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz
+- full_name_lineage: fullnamelineage.dmp in https://ftp.ncbi.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz
+- merged: merged.dmp in https://ftp.ncbi.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz
 
 mapping files:
     - https://ftp.ncbi.nih.gov/pub/taxonomy/accession2taxid/dead_wgs.accession2taxid.gz
@@ -76,7 +73,7 @@ def build_mapping_file():
 
         will be written to standard output. For example:
 
-        [Accession ID]    [Taxonomy ID]    [Ranked Lineage]    [Full Name Lineage]
+        [Accession ID]    [Taxonomy ID]    [Ranked Lineage (multiple columns)]    [Full Name Lineage (one column)]
         NC_005100    10116    Rattus norvegicus    Rattus   Muridae Rodentia   [...]   Organisms; Eukaryota; [...]
     """
 
@@ -102,7 +99,7 @@ def build_mapping_file():
     # This is because some accession IDs are no longer used.
     merged_ids = build_merged_IDs(merged_filename)
 
-    # Output the file mapping [(Old/New) NCBI Accession ID] -> [TaxID, Ranked Lineage, Full Name Lineage]
+    # Output the mapping [(Old/New) NCBI Accession ID] -> [TaxID, Ranked Lineage, Full Name Lineage]
     output_mapping(accessions, lineages, merged_ids)
 
 
@@ -132,9 +129,10 @@ def parse_arguments():
     
     return args
 
+
 def get_accession_IDs(mash_info_filename):
     """
-    Get all NCBI accession IDs that are observed in the output of 'mash info'. The format of the 'mash info' file
+    Get all NCBI accession IDs that are observed in the output of 'mash info -t'. The format of the 'mash info' file
     needs to be very particular:
 
     1000    143726002    GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.gz    [1870 seqs] NC_004354.4 Drosophila [...]
@@ -143,25 +141,26 @@ def get_accession_IDs(mash_info_filename):
     by a "[# seqs]" substring.
 
     PARAMETERS:
-        mash_info_filename (str): the name of the file containing the output of 'mash_info'
+        mash_info_filename (str): the name of the file containing the output of 'mash_info -t'
 
     RETURNS:
         accessions (dict(str->None)): a dictionary containing only NCBI accession IDs as keys, all mapping to None
     """
+
+    QUERY_COMMENT = 3
 
     accessions = {}
 
     with open(mash_info_filename) as f:
 
         next(f) # Skip header
-
         line = next(f, None)
 
         while line:
             line = line.strip()
 
             tokens = line.split("\t")
-            string = tokens[3]
+            string = tokens[QUERY_COMMENT]
 
             # Check for optional "[# seqs]":
             if string.startswith("["):
@@ -176,18 +175,21 @@ def get_accession_IDs(mash_info_filename):
 
     return accessions
 
+
 def add_taxonomy_to_accessions(accessions, mapping_filenames):
     """
-    Adds NCBI taxonomy IDs to a NCBI accession IDs dictionary by iterating over several files mapping accession IDs to
-    taxonomy IDs and adding matches when found.
+    Adds NCBI taxonomy IDs to a NCBI accession IDs dictionary by iterating over several files that map accession IDs
+    to taxonomy IDs and adding matches when found.
 
     PARAMETERS:
-        accessions (dict(str->None)): a dictionary with NCBI accession IDs as keys; any values may be overwritten. This
-            dictionary will be editted.
+        accessions (dict(str->None)): a dictionary with NCBI accession IDs as keys; this dictionary will be editted
 
     POST
-        The 'accessions' dictionary will be modified to have accessions added as values for each taxonomy ID key.
+        The 'accessions' dictionary will be modified to have taxonomy IDs added as values for each accession ID key.
     """
+
+    ACCESSION = 0
+    TAXID = 2
 
     for filename in mapping_filenames:
         with open(filename) as f:
@@ -197,16 +199,17 @@ def add_taxonomy_to_accessions(accessions, mapping_filenames):
             for line in f:
 
                 tokens = line.split()
-                accession = tokens[0]
-                taxid = tokens[2]
+                accession = tokens[ACCESSION]
+                taxid = tokens[TAXID]
 
                 if accession in accessions:
 
                     accessions[accession] = taxid
 
+
 def map_taxonomy_to_lineage(ranked_lineage_filename):
     """
-    Maps taxnomy IDs to ranked lineage information. In particular, builds a dictionary of the following form:
+    Maps taxonomy IDs to ranked lineage information. In particular, builds a dictionary of the following form:
 
     [Taxonomy ID] -> [Taxonomy Name, Species, Genus, Family, Order, Class, Phylum, Kingdom, Superkingdom]
 
@@ -217,6 +220,17 @@ def map_taxonomy_to_lineage(ranked_lineage_filename):
         lineages (dict(int->list(str))): a dictionary mapping taxonmy IDs to ranked lineage information
     """
 
+    TAXID = 0
+    TAX_NAME = 1
+    SPECIES = 2
+    GENUS = 3
+    FAMILY = 4
+    ORDER = 5
+    CLASS = 6
+    PHYLUM = 7
+    KINGDOM = 8
+    SUPERKINGDOM = 9
+
     lineages = {}
 
     with open(ranked_lineage_filename) as f:
@@ -225,17 +239,17 @@ def map_taxonomy_to_lineage(ranked_lineage_filename):
 
             tokens = line.split("|")
 
-            taxid = tokens[0].strip()
+            taxid = tokens[TAXID].strip()
 
-            tax_name = tokens[1].strip() if len(tokens[1].strip()) > 0 else "-"
-            species = tokens[2].strip() if len(tokens[2].strip()) > 0 else "-"
-            genus = tokens[3].strip() if len(tokens[3].strip()) > 0 else "-"
-            family = tokens[4].strip() if len(tokens[4].strip()) > 0 else "-"
-            order = tokens[5].strip() if len(tokens[5].strip()) > 0 else "-"
-            clas = tokens[6].strip() if len(tokens[6].strip()) > 0 else "-"
-            phylum = tokens[7].strip() if len(tokens[7].strip()) > 0 else "-"
-            kingdom = tokens[8].strip() if len(tokens[8].strip()) > 0 else "-"
-            superkingdom = tokens[9].strip() if len(tokens[9].strip()) > 0 else "-"
+            tax_name = tokens[TAX_NAME].strip() if len(tokens[TAX_ID].strip()) > 0 else "-"
+            species = tokens[SPECIES].strip() if len(tokens[SPECIES].strip()) > 0 else "-"
+            genus = tokens[GENUS].strip() if len(tokens[GENUS].strip()) > 0 else "-"
+            family = tokens[FAMILY].strip() if len(tokens[FAMILY].strip()) > 0 else "-"
+            order = tokens[ORDER].strip() if len(tokens[ORDER].strip()) > 0 else "-"
+            clas = tokens[CLASS].strip() if len(tokens[CLASS].strip()) > 0 else "-"
+            phylum = tokens[PHYLUM].strip() if len(tokens[PHYLUM].strip()) > 0 else "-"
+            kingdom = tokens[KINGDOM].strip() if len(tokens[KINGDOM].strip()) > 0 else "-"
+            superkingdom = tokens[SUPERKINGDOM].strip() if len(tokens[SUPERKINGDOM].strip()) > 0 else "-"
 
             lineages[taxid] = [tax_name, species, genus, family, order, clas, phylum, kingdom, superkingdom]
 
@@ -261,6 +275,9 @@ def append_full_name_lineage(lineages, full_name_lineage_filename):
     POST
         The 'lineages' parameter will have full name lineages appended to the lineage information for each taxonomy ID.
     """
+
+    TAXID = 0
+    FULL_LINEAGE = 2
     
     with open(full_name_lineage_filename) as f:
 
@@ -268,9 +285,9 @@ def append_full_name_lineage(lineages, full_name_lineage_filename):
 
             tokens = line.split("|")
 
-            taxid = tokens[0].strip()
+            taxid = tokens[TAXID].strip()
 
-            full_lineage = tokens[2].strip()
+            full_lineage = tokens[FULL_LINEAGE].strip()
             full_lineage = full_lineage[:-1]  # remove the trailing ";" character
 
             lineages[taxid].append(full_lineage)
@@ -288,6 +305,9 @@ def build_merged_IDs(merged_filename):
         merged_ids (dict(str->str)): a dictionary mapping old IDs to new IDs
     """
 
+    OLD_ID = 0
+    NEW_ID = 1
+
     merged_ids = {}
 
     with open(merged_filename) as f:
@@ -296,17 +316,18 @@ def build_merged_IDs(merged_filename):
 
             tokens = line.split("|")
 
-            old_id = tokens[0].strip()
-            new_id = tokens[1].strip()
+            old_id = tokens[OLD_ID].strip()
+            new_id = tokens[NEW_ID].strip()
 
             merged_ids[old_id] = new_id
 
     return merged_ids
 
+
 def output_mapping(accessions, lineages, merged_ids):
     """
     Iterates through various dictionaries to output, line-by-line, and writes the mapping of NCBI accession ID to
-    its associated taxnomic lineage information.
+    its associated taxonomic lineage information.
 
     PARAMETERS:
         accessions (dict(str->str)): dictionary mapping NCBI accession IDs to NCBI taxonomy IDs
@@ -350,6 +371,7 @@ def output_mapping(accessions, lineages, merged_ids):
             output = "FAILURE: " + str(taxid)
 
         print(output)
+
 
 # Run the program:
 build_mapping_file()
