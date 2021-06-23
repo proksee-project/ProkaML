@@ -18,6 +18,42 @@ CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
 
+"""
+This script builds a tab-separated mapping file to be used with ONE corresponding Mash sketch file. The script
+maps NCBI accession IDs found in the 'query comment' field of the output of 'mash info' (of a Mash sketch file)
+to their NCBI taxonomy ID, their ranked lineage, and their full lineage.
+
+The mapping file will have a format similar to the following:
+
+[Accession ID]    [Taxonomy ID]    [Ranked Lineage (multiple columns)]    [Full Name Lineage (one column)]
+NC_005100    10116    Rattus norvegicus    Rattus   Muridae Rodentia   [...]   Organisms; Eukaryota; [...]
+
+The following files will be required:
+
+mash_info: the output from running 'mash info' on a Mash sketch; the file produced by this program is
+    expected to work ONLY with this Mash sketch file
+ranked_lineage: a NCBI file mapping NCBI taxonomy IDs to their 'ranked' lineage
+full_name_lineage: a NCBI file mapping NCBI taxonomy IDs to their 'full' lineage
+merged: a NCBI file mapping old NCBI accession IDs to their new, merged NCBI accession IDs
+(multiple) mapping files: a list of NCBI files mapping NCBI accession IDs to NCBI taxonomy IDs
+
+As of 2021-06-23, the following files were used when building a mapping file:
+
+mash_info: output of 'mash info -t' on this sketch: https://gembox.cbcb.umd.edu/mash/refseq.genomes.k21s1000.msh
+
+ranked_lineage: rankedlineage.dmp in https://ftp.ncbi.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz
+
+full_name_lineage: fullnamelineage.dmp in https://ftp.ncbi.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz
+
+merged: merged.dmp in https://ftp.ncbi.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz
+
+mapping files:
+    - https://ftp.ncbi.nih.gov/pub/taxonomy/accession2taxid/dead_wgs.accession2taxid.gz
+    - https://ftp.ncbi.nih.gov/pub/taxonomy/accession2taxid/dead_nucl.accession2taxid.gz
+    - https://ftp.ncbi.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz
+    - https://ftp.ncbi.nih.gov/pub/taxonomy/accession2taxid/nucl_wgs.accession2taxid.gz
+"""
+
 import sys
 import argparse
 
