@@ -348,12 +348,14 @@ def output_mapping(accessions, lineages, merged_ids):
         taxid = accessions[accession]
 
         if taxid in lineages:
+
             lineage = lineages[taxid]
 
             output = ""
             output += accession + "\t"
             output += taxid + "\t"
             output += "\t".join(lineage)
+            print(output)
 
         elif taxid in merged_ids:
 
@@ -364,11 +366,10 @@ def output_mapping(accessions, lineages, merged_ids):
             output += accession + "\t"
             output += taxid + "\t"
             output += "\t".join(lineage)
+            print(output)
 
         else:
             sys.stderr.write("The following TaxID is missing: " + str(taxid) + "\n")
-
-        print(output)
 
 
 # Run the program:
