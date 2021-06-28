@@ -241,7 +241,7 @@ def map_taxonomy_to_lineage(ranked_lineage_filename):
 
             taxid = tokens[TAXID].strip()
 
-            tax_name = tokens[TAX_NAME].strip() if len(tokens[TAX_ID].strip()) > 0 else "-"
+            tax_name = tokens[TAX_NAME].strip() if len(tokens[TAX_NAME].strip()) > 0 else "-"
             species = tokens[SPECIES].strip() if len(tokens[SPECIES].strip()) > 0 else "-"
             genus = tokens[GENUS].strip() if len(tokens[GENUS].strip()) > 0 else "-"
             family = tokens[FAMILY].strip() if len(tokens[FAMILY].strip()) > 0 else "-"
