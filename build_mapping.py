@@ -154,9 +154,9 @@ def get_accession_IDs(mash_info_filename):
     with open(mash_info_filename) as f:
 
         next(f) # Skip header
-        line = next(f, None)
 
-        while line:
+        for line in f:
+
             line = line.strip()
 
             tokens = line.split("\t")
@@ -170,8 +170,6 @@ def get_accession_IDs(mash_info_filename):
             accession = string.split(" ")[0]
             accession = accession.split(".")[0] # Remove the version (NC_000001.1 -> NC_000001)
             accessions[accession] = None
-
-            line = next(f, None)
 
     return accessions
 
@@ -368,7 +366,7 @@ def output_mapping(accessions, lineages, merged_ids):
             output += "\t".join(lineage)
 
         else:
-            output = "FAILURE: " + str(taxid)
+            sys.stderr.write("The following TaxID is missing: " + str(taxid) + "\n")
 
         print(output)
 
