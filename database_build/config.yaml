@@ -5,3 +5,9 @@
 
 email: dummy@email.com
 api_key: dummy_api_key_01234
+
+# Cluster parameters
+output_directory: dummy_directory
+# /home/CSCScience.ca/amandal/proksee-database/snakemake/database_build/
+partition: dummy_partition
+# NMLResearch

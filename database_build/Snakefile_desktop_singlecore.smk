@@ -7,7 +7,7 @@ species_assembly_counts = 'species_counts_' + month_year_stamp + '.txt'
 
 configfile: "config.yaml"
 
-CATEGORY = ['major', 'large', 'interm']
+CATEGORY = ['interm', 'large', 'major']
 
 rule target:
     input:
@@ -25,7 +25,7 @@ rule retrieve_id_list:
     output:
         directory(expand("id_list_{category}", category=CATEGORY))
     shell:
-        "python idlist_retriever.py {config[email]} {config[api_key]} {input}"
+        "python idlist_retriever_categorical.py {config[email]} {config[api_key]} {input}"
 
 rule obtain_metadata:
     input:

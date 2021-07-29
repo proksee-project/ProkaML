@@ -150,9 +150,9 @@ def main():
     input_file = args.input_file
 
     species_all_tuple = species_select(input_file)
-    species_iterate(species_all_tuple[0], 'id_list')
-    species_iterate(species_all_tuple[1], 'id_list')
-    species_iterate(species_all_tuple[2], 'id_list')
+    species_iterate(species_all_tuple[0], 'id_list_major')
+    species_iterate(species_all_tuple[1], 'id_list_large')
+    species_iterate(species_all_tuple[2], 'id_list_interm')
 
     # UIDs for minor species (species with < 10 assemblies) are not obtained for lack of useful information
 
