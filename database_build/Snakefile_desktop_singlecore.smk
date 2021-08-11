@@ -3,39 +3,46 @@ import os
 import glob
 
 month_year_stamp = date.today().strftime("%b_%Y")
-species_assembly_counts = 'species_counts_' + month_year_stamp + '.txt'
-
+species_assembly_counts = 'species_assemblycounts_' + month_year_stamp + '.txt'
+species_assembly_counts_taxonomy = 'species_assemblycounts_' + month_year_stamp + '_taxonomy.txt'
 configfile: "config.yaml"
-
-CATEGORY = ['interm', 'large', 'major']
 
 rule target:
     input:
-        expand("{category}_species_metadata", category=CATEGORY)
+        "species_metadata"
 
 rule species_count:
     output:
         species_assembly_counts      
     shell:
-        "python assemblydb_entrez_query.py {config[email]} {config[api_key]}"
+        "python get_species_assemblies.py {config[email]} {config[api_key]}"
 
-rule retrieve_id_list:
+rule append_taxonomical_kingdom:
     input:
         species_assembly_counts
     output:
-        directory(expand("id_list_{category}", category=CATEGORY))
+        species_assembly_counts_taxonomy
     shell:
-        "python idlist_retriever_categorical.py {config[email]} {config[api_key]} {input}"
+        "python get_taxonomical_kingdom.py {config[email]} {config[api_key]}"
+
+checkpoint retrieve_id_list:
+    input:
+        species_assembly_counts_taxonomy
+    output:
+        directory("id_list")
+    shell:
+        "python retrieve_idlist.py {config[email]} {config[api_key]} {input}"
+
+def get_idlist_filepath(wildcards):
+    checkpoint_output = checkpoints.retrieve_id_list.get(**wildcards).output[0]
+    return expand("id_list/{i}.txt", i=glob_wildcards(os.path.join(checkpoint_output, "{i}.txt")).i)
 
 rule obtain_metadata:
     input:
-        expand("id_list_{category}", category=CATEGORY)
+        get_idlist_filepath
     output:
-        directory(expand("{category}_species_metadata", category=CATEGORY))
+        directory("species_metadata")
     run:
-        for i in range(0, len(CATEGORY)):
-            id_file_list = glob.glob('id_list_' + CATEGORY[i] + '/*_idlist.txt')
-            input_dir = 'id_list_' + CATEGORY[i]
-            output_dir = CATEGORY[i] + '_species_metadata'
-            for index in range(0, len(id_file_list)):
-                shell("python metadata_print_fileindex.py {config[email]} {config[api_key]} {input_dir} {output_dir} {index}")
+        for file in input:
+            command = "python get_genomic_metadata_filename.py {config[email]} {config[api_key]} {file}"
+            shell(command)
