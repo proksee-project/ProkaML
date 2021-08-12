@@ -12,6 +12,7 @@ rule target:
         "species_metadata"
 
 rule species_count:
+    conda: config["conda_environment"]
     output:
         species_assembly_counts      
     shell:
