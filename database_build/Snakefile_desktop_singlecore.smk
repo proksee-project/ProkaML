@@ -67,7 +67,7 @@ def aggregate_input(wildcards):
 
 rule concatenate_metadata:
     input:
-        "aggregate_input"
+        aggregate_input
     output:
         integrated_metadata_file
     shell:
