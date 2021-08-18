@@ -1,1 +1,0 @@
-Organism Name	Strain/Isolate	Assembly Name	Genbank Accession	Refseq Accession	Genome Coverage	Submission Date	Last Update Date	Refseq Exclusion Reason	ContigN50	Contig count	ContigL50	Total length	Assembly Method	Sequencing Technology	
