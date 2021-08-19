@@ -7,7 +7,12 @@ The scripts for generating proksee database comprising genomic attributes of NCB
 Usage: `snakemake -s Snakefile_desktop_singlecore.smk --cores 1 --config email="dummy@email.com" --config api_key="dummy_api_key_01234"`.  
 where dummy email and API key entries should be replaced with user specific actual values.  
 The generation of **proksee-database** utilizes snakemake workflow to automate complex processes with a single command. It is advisable to run snakemake in a separate conda environment. Visit the snakemake [page](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html) for instructions on installation and setting up the appropriate software environment.  
-In summary, the snakemake file `Snakemake_desktop_singlecore.smk` chains together individual python scripts, with their respective input and output dependencies to generate **proksee-database**. Currently, the database build time is approximately 10 days, which can be reduced by implementing parallel workflows in a cluster environment (details coming soon). For understanding the operations of individual python scripts, users are requested to refer to the section below.   
+In summary, the snakemake file `Snakemake_desktop_singlecore.smk` chains together individual python scripts, with their respective input and output dependencies to generate **proksee-database**. Currently, the database build time is approximately 10 days, which can be reduced by implementing parallel workflows in a cluster environment.
+
+`snakemake -j 10 --cluster-config cluster.json --cluster "sbatch -p {cluster.partition} -t {cluster.time}" --config email="dummy@email.com" --config api_key="dummy_api_key_01234"` 
+
+
+For understanding the operations of individual python scripts, users are requested to refer to the section below.   
 
 ## proksee-database generation (step-wise scripts)
 Step 1: Run `assemblydb_entrez_query.py` . Usage: `python assemblydb_entrez_query.py email api_key`. 

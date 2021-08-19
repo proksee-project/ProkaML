@@ -1,13 +1,11 @@
 {
-	"__default__" : 
+	"__default__" :
 	{
 		"time": "2:00:00",
-		"partition": "NMLResearch",
-		"array": 1
+		"partition": "dummy_partition"
 	},
 	"obtain_metadata" :
 	{
-		"time": "10:00:00",
-		"array": "[1-1000]%10"
+		"time": "10:00:00"
 	}
 }
