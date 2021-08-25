@@ -32,12 +32,16 @@ rule target:
         integrated_metadata_file
 
 rule species_count:
+    conda: 
+        "dependencies.yaml"
     output:
         species_assembly_counts      
     shell:
         "python get_species_assemblies.py {config[email]} {config[api_key]}"
 
 rule append_taxonomical_kingdom:
+    conda: 
+        "dependencies.yaml"
     input:
         species_assembly_counts
     output:
@@ -46,24 +50,38 @@ rule append_taxonomical_kingdom:
         "python get_taxonomical_kingdom.py {config[email]} {config[api_key]}"
 
 checkpoint retrieve_id_list:
+    conda: 
+        "dependencies.yaml"
     input:
         species_assembly_counts_taxonomy
     output:
-        directory("id_list")
+        directory("entrez_id_list")
     shell:
         "python retrieve_idlist.py {config[email]} {config[api_key]} {input}"
 
-rule obtain_metadata:
+rule obtain_entrez_metadata:
+    conda: 
+        "dependencies.yaml"
     input:
-        "id_list/{i}_idlist.txt"
+        "entrez_id_list/{i}_idlist.txt"
     output:
-        "species_metadata/{i}_metadata.txt"
+        "entrez_species_metadata/{i}_metadata.txt"
     shell:
-        "python get_genomic_metadata_filename.py {config[email]} {config[api_key]} {input}"
+        "python get_entrez_metadata.py {config[email]} {config[api_key]} {input}"
+
+rule obtain_additional_metadata:
+    conda: 
+        "dependencies.yaml"
+    input:
+        "entrez_species_metadata/{i}_metadata.txt"
+    output:
+        "additional_species_metadata/{i}_metadata_added_attributes.txt"
+    shell:
+        "python append_additional_attributes.py {config[email]} {config[api_key]} {input}"
 
 def aggregate_input(wildcards):
     checkpoint_output = checkpoints.retrieve_id_list.get(**wildcards).output[0]
-    return expand("species_metadata/{i}_metadata.txt", i=glob_wildcards(os.path.join(checkpoint_output, "{i}_idlist.txt")).i)
+    return expand("additional_species_metadata/{i}_metadata_added_attributes.txt", i=glob_wildcards(os.path.join(checkpoint_output, "{i}_idlist.txt")).i)
 
 rule concatenate_metadata:
     input:

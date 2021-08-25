@@ -20,11 +20,11 @@ specific language governing permissions and limitations under the License.
 import os
 import argparse
 from Bio import Entrez
-from assembly_metadata import AttributeMetadata
+from entrez_metadata import EntrezMetadata
 
 ID_LIST_FILE_EXTENSION = 'idlist.txt'
 METADATA_FILE_EXTENSION = 'metadata.txt'
-OUTPUT_DIR = 'species_metadata'
+OUTPUT_DIR = 'entrez_species_metadata'
 
 my_parser = argparse.ArgumentParser(usage='python %(prog)s [-h] email api_key input_file_path',
                                     description='Obtains assembly attributes from API queries')
@@ -42,9 +42,6 @@ args = my_parser.parse_args()
 
 input_file_path = args.input_file_path
 
-if not os.path.exists(OUTPUT_DIR):
-    os.mkdir(OUTPUT_DIR)
-
 with open(input_file_path) as f:
     id_list = f.read().splitlines()
 
@@ -53,5 +50,5 @@ output_file = open(os.path.join(OUTPUT_DIR, output_filename), 'w')
 
 Entrez.email = args.email
 Entrez.api_key = args.api_key
-idlist_metadata = AttributeMetadata(id_list)
+idlist_metadata = EntrezMetadata(id_list)
 idlist_metadata.print_genomic_metadata(output_file)

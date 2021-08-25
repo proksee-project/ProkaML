@@ -34,8 +34,9 @@ DATABASE = 'assembly'
 TERM_EXTENSION = '[Organism] AND contig[Assembly Level]'
 ID_LIST = 'IdList'
 ID_LIST_LIMIT = 10000
-OUTPUT_DIR = 'id_list'
-
+OUTPUT_DIR = 'entrez_id_list'
+ENTREZ_METADATA_DIR = 'entrez_species_metadata'
+ADDITIONAL_METADATA_DIR = 'additional_species_metadata'
 
 def select_bacterial_species(input_file):
 
@@ -134,6 +135,10 @@ def main():
 
         write_idlist_filechunks(i, species_list[i], species_id_list, species_num_chunks, species_outfile_list)
 
+    if not os.path.exists(ENTREZ_METADATA_DIR):
+        os.mkdir(ENTREZ_METADATA_DIR)
+    if not os.path.exists(ADDITIONAL_METADATA_DIR):
+        os.mkdir(ADDITIONAL_METADATA_DIR)
 
 if __name__ == "__main__":
     main()

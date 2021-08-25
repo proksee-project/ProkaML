@@ -23,7 +23,7 @@ import urllib.error
 import re
 
 
-class AttributeMetadata():
+class EntrezMetadata():
     """
     A class for obtaining genomic assembly attributes from NCBI
 
@@ -427,10 +427,9 @@ class AttributeMetadata():
             except (urllib.error.HTTPError, urllib.error.URLError):
                 """
                 url errors can arise due to NCBI server updates. The timeout argument in the try: block
-                is sufficiently large to accommodate autofixing of url error issues.
+                should accomodate most autofixing of url error issues.
                 """
-
-                pass
+                assembly_report_lines_string = 'URLError'
 
         else:
             assembly_report_lines_string = 'NA'
@@ -448,7 +447,7 @@ class AttributeMetadata():
             assembler (str): the assembly method from NCBI
         """
 
-        if assembly_report_lines_string == 'NA':
+        if assembly_report_lines_string == 'NA' or assembly_report_lines_string == 'URLError':
             assembler = 'NA'
 
         else:
@@ -472,7 +471,7 @@ class AttributeMetadata():
             sequencing_platform (str): the sequencing platform for an assembly from NCBI
         """
 
-        if assembly_report_lines_string == 'NA':
+        if assembly_report_lines_string == 'NA' or assembly_report_lines_string == 'URLError':
             sequencing_platform = 'NA'
 
         else:

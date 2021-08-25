@@ -30,20 +30,18 @@ PREFIX_LARGE = 'large'
 THRESHOLD_INTERMEDIATE = 10
 PREFIX_INTERMEDIATE = 'intermediate'
 
-METADATA_DIRECTORY = 'species_metadata'
-METADATA_FILE_EXTENSION = '_chunk.+?_metadata.txt'
+ADDITIONAL_METADATA_DIRECTORY = 'additional_species_metadata'
+METADATA_FILE_EXTENSION = '_chunk.+?_metadata_added_attributes.txt'
 JOIN_CHARACTER = '_'
 SPLIT_CHARACTER = ' '
 SEPARATOR = '\t'
-METADATA_FILE_LIST = os.listdir(METADATA_DIRECTORY)
-METADATA_COLUMNS = ['Organism Name', 'Strain/Isolate', 'Assembly Name', 'Genbank Accession',
-					'Refseq Accession', 'Genome Coverage', 'Submission Date', 'Last Update Date',
-					'Refseq Exclusion Reason', 'ContigN50', 'Contig count', 'ContigL50',
-					'Total length', 'Assembly Method', 'Sequencing Technology']
+METADATA_FILE_LIST = os.listdir(ADDITIONAL_METADATA_DIRECTORY)
+
 SPECIES = 'Species'
 KINGDOM = 'Kingdom'
 NUM_ASSEMBLIES = 'Num_assemblies'
 METADATA_FILES = 'Metadata_files'
+KEEP_DEFAULT_NA = False
 INTEGRATED_METADATA_FILE = 'well_represented_species_metadata.txt'
 
 def threshold_metadata(dataframe):
@@ -58,7 +56,7 @@ def threshold_metadata(dataframe):
 def get_metadata_files(species):
 	species_pattern = JOIN_CHARACTER.join(species.split(SPLIT_CHARACTER)) + METADATA_FILE_EXTENSION
 	species_file_list = list(filter(re.compile(species_pattern).match, METADATA_FILE_LIST))
-	species_file_paths_list = [os.path.join(METADATA_DIRECTORY, file) for file in species_file_list]
+	species_file_paths_list = [os.path.join(ADDITIONAL_METADATA_DIRECTORY, file) for file in species_file_list]
 
 	return species_file_paths_list
 
@@ -95,12 +93,17 @@ def main():
 		df[METADATA_FILES] = df.apply(lambda row: get_metadata_files(row[SPECIES]), axis=1)
 		categorical_metadata_file_list = merge_series_list(df[METADATA_FILES].to_list())
 		categorical_metadataframe_list = []
-		for j in categorical_metadata_file_list:
-			species_chunk_dataframe = pd.read_csv(j, sep=SEPARATOR, names=METADATA_COLUMNS)
-			categorical_metadataframe_list.append(species_chunk_dataframe)
 
-		categorical_integrated_dataframe = pd.concat(categorical_metadataframe_list)
-		categorical_integrated_dataframe.to_csv(categorical_integrated_metadata_file, sep=SEPARATOR, index=False)
+		if len(categorical_metadata_file_list) == 0:
+			continue
+
+		else:
+			for j in categorical_metadata_file_list:
+				species_chunk_dataframe = pd.read_csv(j, sep=SEPARATOR, keep_default_na=KEEP_DEFAULT_NA)
+				categorical_metadataframe_list.append(species_chunk_dataframe)
+
+			categorical_integrated_dataframe = pd.concat(categorical_metadataframe_list)
+			categorical_integrated_dataframe.to_csv(categorical_integrated_metadata_file, sep=SEPARATOR, index=False)
 
 		all_species_integrated_dataframe_list.append(categorical_integrated_dataframe)
 

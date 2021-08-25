@@ -5,11 +5,3 @@
 
 email: dummy@email.com
 api_key: dummy_api_key_01234
-
-#conda_environment: "dependencies.yaml"
-
-#cluster-config: cluster.json
-
-#cluster: "sbatch --time={cluster.time} --partition={cluster.partition} --array={cluster.array}"
-
-#jobscript: slurm_jobscript.sh
