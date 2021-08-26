@@ -1,18 +1,28 @@
 # proksee-database
 proksee database is a reference library for microorganisms with different genome assembly metrics and statistics.  
 
-The scripts for generating proksee database comprising genomic attributes of NCBI contig assemblies are in the directory `database_build`. The scripts run biopython API queries on the NCBI database and therefore require the user to provide an API key corresponding to their account. If you dont have an NCBI API key, visit the NCBI login [page](https://www.ncbi.nlm.nih.gov/account/) and create an account using your email. Once you sign in, click on the top right corner on your email ID. This will redirect you to a new page where you can find your API key. You will need to use this API key for most of the scripts within `database_build` directory.
+The scripts for generating proksee database comprising genomic attributes of NCBI contig assemblies are in the directories `database_build` and `add_genomic_attributes`. The scripts run biopython API queries on the NCBI database and therefore require the user to provide an API key corresponding to their account. If you dont have an NCBI API key, visit the NCBI login [page](https://www.ncbi.nlm.nih.gov/account/) and create an account using your email. Once you sign in, click on the top right corner on your email ID. This will redirect you to a new page where you can find your API key. You will need to use this API key for most of the scripts within `database_build` directory.
 
 ## proksee-database generation (Snakemake automated workflow)  
 Usage: `snakemake --cores 1 --config email="dummy@email.com" --config api_key="dummy_api_key_01234"`.  
 where dummy email and API key entries should be replaced with user specific actual values.  
 The generation of **proksee-database** utilizes snakemake workflow to automate complex processes with a single command. It is advisable to run snakemake in a separate conda environment. Visit the snakemake [page](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html) for instructions on installation and setting up the appropriate software environment.  
-In summary, the snakemake file `Snakefile` chains together individual python scripts, with their respective input and output dependencies to generate **proksee-database**. Currently, the database build time is approximately 10 days, which can be reduced by implementing parallel workflows in a cluster environment. To run snakemake in a cluster environment, user must have access to a cluster and the following command can be run:
-
+In summary, the snakemake file `Snakefile` chains together individual python scripts, with their respective input and output dependencies to generate **proksee-database**. Currently, the database build time is approximately 20 days, which can be reduced by implementing parallel workflows in a cluster environment. To run snakemake in a cluster environment, user must have access to a cluster and the following command can be run:  
 `snakemake -j 10 --cluster-config cluster.json --cluster "sbatch -p {cluster.partition} -t {cluster.time}" --config email="dummy@email.com" --config api_key="dummy_api_key_01234"` 
+where `cluster.json` is a file with parameter specifications for sbatch command. `{cluster.partition}` is currently specified as `dummy_partition`must be replaced with the actual partition name within the cluster. 
 
+Troubleshooting:
+Snakemake workflow in cluster requires a user to maintain active connection. If this is not a possibility, `sbatch` must be appended at the beginning of the command:  
+`sbatch snakemake -j 10 --cluster-config cluster.json --cluster "sbatch -p {cluster.partition} -t {cluster.time}" --config email=="dummy@email.com" --config api_key="dummy_api_key_01234"`  
+The sbatch at the beginning ensures that the main snakemake workflow is always running, while the sbatch at the middle lets snakemake parallelize the workflow. 
 
-For understanding the operations of individual python scripts, users are requested to refer to the section below.   
+If snakemake cluster jobs have to be terminated or are killed for some reason, the following snakemake commands must be run before re-running snakemake instance:  
+```
+snakemake --cleanup-metadata <filenames>
+snakemake --unlock
+```
+
+Snakemake workflow combines different python scripts. The scripts can be run separately as explained in the following section.  
 
 ## proksee-database generation (step-wise scripts)
 Step 1: Run `assemblydb_entrez_query.py` . Usage: `python assemblydb_entrez_query.py email api_key`. 
