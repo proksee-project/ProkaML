@@ -20,6 +20,7 @@ specific language governing permissions and limitations under the License.
 from datetime import date
 import os
 import glob
+from os import environ
 
 month_year_stamp = date.today().strftime("%b_%Y")
 species_assembly_counts = 'species_assemblycounts_' + month_year_stamp + '.txt'

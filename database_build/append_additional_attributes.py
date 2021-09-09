@@ -17,14 +17,21 @@ CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 '''
 
+from pathlib import Path, PurePath
+parent_directory = Path(__file__).resolve().parents[1]
+ADDITIONAL_GENOMIC_ATTRIBUTES_PATH = PurePath.joinpath(parent_directory, 'add_genomic_attributes')
+
 import sys
-ADDITIONAL_GENOMIC_ATTRIBUTES_RELATIVE_PATH = '../add_genomic_attributes'
-sys.path.append(ADDITIONAL_GENOMIC_ATTRIBUTES_RELATIVE_PATH)
+sys.path.append(ADDITIONAL_GENOMIC_ATTRIBUTES_PATH)
+
 import os
 import argparse
 import pandas as pd
 from entrez_metadata import EntrezMetadata
 from gc_content import GCContentCalculate
+
+
+
 
 SEPARATOR = '\t'
 FILENAME_SPLIT_PATTERN = '.txt'
