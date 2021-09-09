@@ -30,9 +30,6 @@ import pandas as pd
 from entrez_metadata import EntrezMetadata
 from gc_content import GCContentCalculate
 
-
-
-
 SEPARATOR = '\t'
 FILENAME_SPLIT_PATTERN = '.txt'
 FILENAME_ID_INDEX = 0
