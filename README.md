@@ -1,5 +1,5 @@
 # ProkaML  
-ProkaML is a machine learning based framework for prokaroyotic sequence assembly quality control (QC) evaluation. The key steps in ProkaML are: building a database of prokaroyotic species with different genome assembly metrics, preprocessing and normalizing assembly attributes, and using random forest classification on the normalized genomic attributes to generate a model for assembly QC evaluation.  
+ProkaML is a machine learning based framework for prokaryotic sequence assembly quality control (QC) evaluation. The key steps in ProkaML are: building a database of prokaroyotic species with different genome assembly metrics, preprocessing and normalizing assembly attributes, and using random forest classification on the normalized genomic attributes to generate a model for assembly QC evaluation.  
 This document provides an overview of the programs and steps used to accomplish the aforementioned steps. Additional details are provided in `WORKFLOW.md`.    
 
 ## Database building  
@@ -54,11 +54,15 @@ Step 5: Run `append_additional_attributes.py`. Usage:
 python append_additional_attributes.py email api_key entrez_species_metadata/{i}_metadata.txt
 ```
 
-This takes a metadata file from step 4 and for every assembly row, downloads the complete fasta assembly, calculates the overall GC content and appends an additional column for every row. Files are written to the directory `additional_species_metadat`a with names formatted to `{i}_metadata_added_attributes.txt`
+This takes a metadata file from step 4 and for every assembly row, downloads the complete fasta assembly, calculates the overall GC content and appends an additional column for every row. Files are written to the directory `additional_species_metadata` with names formatted to `{i}_metadata_added_attributes.txt`
 
-Step 6: Run `concatenate_metadata.py`. Usage: `python concatenate_metadata.py`.  
+Step 6: Run `concatenate_metadata.py`. Usage: 
+```
+python concatenate_metadata.py
+```
+
 This step concatenates all metadata files to generate four output files.  
 Metadata for species with at least 1000 assemblies each are written to `major_species_metadata_added_attributes.txt`.  
 Metadata for species having at least 100 assemblies each but not exceeding 1000 assemblies are written to `large_species_metadata_added_attributes.txt`.  
 Metadata for species having at least 10 assemblies each but not exceeding 100 assemblies each are written to `intermediate_species_metadata_added_attributes.txt`.  
-All metadata files are concatenated in a resulting file `well_represented_species_metadata_added_attributes.txt` containing assembly metadata for species with at least 10 assemblies. This file is used in subsequent preprocessing, normalizing and generating machine learning models.
+All metadata files are concatenated in a resulting file `well_represented_species_metadata_added_attributes.txt` containing assembly metadata for species with at least 10 assemblies. This file is used in subsequent steps of preprocessing, normalizing and generating machine learning models.
