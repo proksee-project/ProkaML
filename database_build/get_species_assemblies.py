@@ -103,9 +103,6 @@ def append_species_dict(idlist_batch_instance, species_assembly_dict):
             error = genbank_id + ' ' + ERROR_MESSAGE_SERVER
             ERROR_LOG_FILE.write(error)
 
-            pass
-
-
 def species_dicn_write(species_assembly_dict, output_file):
 
     if species_assembly_dict:
