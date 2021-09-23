@@ -82,9 +82,9 @@ def main():
 	for i in range(0, len(categorical_list_dataframes)):
 		if i == 0:
 			category = PREFIX_MAJOR
-		if i == 1:
+		elif i == 1:
 			category = PREFIX_LARGE
-		if i == 2:
+		elif i == 2:
 			category = PREFIX_INTERMEDIATE
 
 		categorical_integrated_metadata_file = category + '_species_metadata.txt'

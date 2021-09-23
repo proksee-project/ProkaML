@@ -25,6 +25,11 @@ import urllib.error
 import gzip
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 OUTPUT_DIRECTORY = 'additional_species_metadata'
+ERROR_LOG_FILE = open('error_log_gccontent.txt', 'w')
+ERROR_MESSAGE_SERVER = 'NCBI server connection error'
+ERROR_MESSAGE_MISMATCH = 'Esummary vs actual assembly link mismatch error'
+ERROR_MESSAGE_ZLIB = 'zlib file opening error'
+
 
 class GCContentCalculate():
     """
@@ -86,8 +91,15 @@ class GCContentCalculate():
         ASSEMBLY_FILE_EXTENSION = '_genomic.fna.gz'
 
         try:
-            # Program download link of assembly file
             handle = Entrez.esearch(db=DATABASE, term=genbank_id)
+
+        except Exception:
+            # logging NCBI server error 
+            error = genbank_id + ' ' + ERROR_MESSAGE_SERVER
+            ERROR_LOG_FILE.write(error)
+            assembly_file_path_local = 'NA'
+
+        else:
             record = Entrez.read(handle)
             handle2 = Entrez.esummary(db=DATABASE, id=record[ID_LIST])
             record2 = Entrez.read(handle2, validate=VALIDATE)
@@ -98,13 +110,17 @@ class GCContentCalculate():
             # Define path to download the assembly file
             assembly_file_path_local = os.path.join(OUTPUT_DIRECTORY, assembly_file)
 
-            # Avoid duplicate downloading if assembly file exists
-            if self.need_download(assembly_file_link, assembly_file_path_local):
+        # Avoid duplicate downloading if assembly file exists
+        if self.need_download(assembly_file_link, assembly_file_path_local):
+
+            try:
                 urllib.request.urlretrieve(assembly_file_link, assembly_file_path_local)
 
-        except Exception:
-            # Accounting for NCBI server issue or incorrect assembly file link
-            assembly_file_path_local = 'NA'
+            except Exception:
+                # logging error for mismatching assembly file link
+                error = genbank_id + ' ' + ERROR_MESSAGE_MISMATCH
+                ERROR_LOG_FILE.write(error)
+                assembly_file_path_local = 'NA'
 
         return assembly_file_path_local
 
@@ -154,6 +170,8 @@ class GCContentCalculate():
 
             except Exception:
                 # Accounting for zlib file opening errors
+                error = os.path.basename(assembly_file_path_local) + ' ' + ERROR_MESSAGE_ZLIB
+                ERROR_LOG_FILE.write(error)
                 overall_gc_content = float('NaN')
 
         return overall_gc_content

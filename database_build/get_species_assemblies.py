@@ -36,6 +36,8 @@ SPECIES = 'SpeciesName'
 OUTPUT_FILE_PREFIX = 'species_assemblycounts_'
 OUTPUT_FILE_EXTENSION = '.txt'
 ASSEMBLY_LOWERBOUND = 10
+ERROR_LOG_FILE = open('error_log_species_assemblies.txt', 'w')
+ERROR_MESSAGE_SERVER = 'NCBI server connection error'
 
 
 def count_assem_records(email, api_key):
@@ -91,11 +93,16 @@ def append_species_dict(idlist_batch_instance, species_assembly_dict):
     docsum = Entrez.read(esum, validate=VALIDATE)
 
     for j in range(0, len(idlist_batch_instance)):
+
         try:
             species = docsum[DOCUMENT_SUMMARY_SET][DOCUMENT_SUMMARY][j][SPECIES]
             species_assembly_dict[species] += 1
+
         except IndexError:
             # Species can't be retrieved due to NCBI server connection issue. Skipping and moving ahead
+            error = genbank_id + ' ' + ERROR_MESSAGE_SERVER
+            ERROR_LOG_FILE.write(error)
+
             pass
 
 
