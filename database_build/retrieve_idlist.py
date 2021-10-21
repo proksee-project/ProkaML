@@ -28,7 +28,7 @@ SEPARATOR = '\t'
 KINGDOM = 'Kingdom'
 SPECIES = 'Species'
 NUM_ASSEMBLIES = 'Num_assemblies'
-KINGDOM_FILTER = 'Bacteria'
+PROKARYOTES = ['Bacteria', 'Archaea']
 
 DATABASE = 'assembly'
 TERM_EXTENSION = '[Organism] AND contig[Assembly Level]'
@@ -38,13 +38,14 @@ OUTPUT_DIR = 'entrez_id_list'
 ENTREZ_METADATA_DIR = 'entrez_species_metadata'
 ADDITIONAL_METADATA_DIR = 'additional_species_metadata'
 
-def select_bacterial_species(input_file):
 
-    # Subsets dataframe for assemblies belonging to bacterial kingdom
+def select_prokaryote_species(input_file):
+
+    # Subsets dataframe for assemblies belonging to prokaryotes
     dataframe = pd.read_csv(input_file, sep=SEPARATOR)
-    bacterial_dataframe = dataframe[dataframe[KINGDOM] == KINGDOM_FILTER]
+    prokaryote_dataframe = dataframe[dataframe[KINGDOM].isin(PROKARYOTES)]
 
-    return bacterial_dataframe
+    return prokaryote_dataframe
 
 
 def get_id_list(species, num_assemblies):
@@ -54,10 +55,12 @@ def get_id_list(species, num_assemblies):
         handle = Entrez.esearch(db=DATABASE,
                                 term=species + TERM_EXTENSION,
                                 retmax=num_assemblies)
-        record = Entrez.read(handle)
 
     except Exception:
         raise Exception('Either connection failure OR some unexpected failure..Exiting...')
+
+    else:
+        record = Entrez.read(handle)
 
     return record[ID_LIST]
 
@@ -124,9 +127,9 @@ def main():
     if not os.path.exists(OUTPUT_DIR):
         os.mkdir(OUTPUT_DIR)
 
-    bacterial_dataframe = select_bacterial_species(input_file)
-    species_list = bacterial_dataframe[SPECIES].to_list()
-    num_assemblies_list = bacterial_dataframe[NUM_ASSEMBLIES].to_list()
+    prokaryote_dataframe = select_prokaryote_species(input_file)
+    species_list = prokaryote_dataframe[SPECIES].to_list()
+    num_assemblies_list = prokaryote_dataframe[NUM_ASSEMBLIES].to_list()
 
     for i in range(0, len(species_list)):
         species_id_list = get_id_list(species_list[i], num_assemblies_list[i])

@@ -22,6 +22,7 @@ from datetime import date
 import glob
 import re
 import os
+import shutil
 
 THRESHOLD_MAJOR = 1000
 PREFIX_MAJOR = 'major'
@@ -43,6 +44,8 @@ NUM_ASSEMBLIES = 'Num_assemblies'
 METADATA_FILES = 'Metadata_files'
 KEEP_DEFAULT_NA = False
 INTEGRATED_METADATA_FILE = 'well_represented_species_metadata.txt'
+ID_LIST_DIRECTORY = 'entrez_id_list'
+
 
 def threshold_metadata(dataframe):
 	dataframe = dataframe[dataframe[KINGDOM].str.contains(r'Archaea|Bacteria|NA\s\(Cannot')]
@@ -109,6 +112,7 @@ def main():
 
 	all_species_integrated_dataframe = pd.concat(all_species_integrated_dataframe_list)
 	all_species_integrated_dataframe.to_csv(INTEGRATED_METADATA_FILE, sep=SEPARATOR, index=False)
+	shutil.rmtree(ID_LIST_DIRECTORY)
 
 if __name__ == '__main__':
 	main()

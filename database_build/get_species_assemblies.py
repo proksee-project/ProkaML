@@ -47,12 +47,14 @@ def count_assem_records(email, api_key):
 
     try:
         handle = Entrez.esearch(db=DATABASE, term=TERM)
-        record = Entrez.read(handle)
-        num_assemblies = record[COUNT]
 
     except Exception:
         raise Exception('Either internet failure OR invalid/incorrect ordering ' +
             'of input parameters (email, API key) OR some unexpected failure..Exiting...')
+
+    else:
+        record = Entrez.read(handle)
+        num_assemblies = record[COUNT]
 
     return int(num_assemblies)
 

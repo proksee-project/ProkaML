@@ -21,7 +21,9 @@ from Bio import Entrez
 import urllib.request
 import urllib.error
 import re
-
+Entrez.max_tries = 10
+ERROR_LOG_FILE = open('error_log_entrez_metadata.txt', 'w')
+ERROR_MESSAGE_SERVER = "Can't fetch metadata from NCBI server"
 
 class EntrezMetadata():
     """
@@ -45,7 +47,14 @@ class EntrezMetadata():
 
         # Obtain document summaries of assemblies using Entrez esummary function
         esum = Entrez.esummary(db="assembly", id=",".join(self.idlist))
-        self.document_summary = Entrez.read(esum, validate=False)
+
+        try:
+            self.document_summary = Entrez.read(esum, validate=False)
+
+        except Exception:
+            error = idlist + ' ' + ERROR_MESSAGE_SERVER
+            ERROR_LOG_FILE.write(error)
+
 
     def print_genomic_metadata(self, outfile):
         """

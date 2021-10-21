@@ -29,7 +29,6 @@ FILE_EXTENSION = '.txt'
 OUTPUT_FILE_SUFFIX = '_taxonomy'
 SEPARATOR = '\t'
 
-
 def get_taxonomy_kingdom(email, api_key, species):
     Entrez.email = email
     Entrez.api_key = api_key
@@ -38,6 +37,10 @@ def get_taxonomy_kingdom(email, api_key, species):
         handle = Entrez.esearch(db="Taxonomy", term=species)
         record = Entrez.read(handle)
 
+    except Exception:
+        kingdom = 'NA (Cannot be obtained)'
+
+    else:
         efetch = Entrez.efetch(db="Taxonomy", id=record['IdList'], retmode="xml")
         taxon_summary = Entrez.read(efetch)
 
@@ -50,9 +53,6 @@ def get_taxonomy_kingdom(email, api_key, species):
 
         else:
             kingdom = 'NA (Not available)'
-
-    except Exception:
-        kingdom = 'NA (Cannot be obtained)'
 
     return kingdom
 
