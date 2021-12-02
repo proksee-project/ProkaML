@@ -23,101 +23,148 @@ import sys
 from datetime import date
 import argparse
 
-DATABASE = 'assembly'
+Entrez.max_tries = 1
+Entrez.sleep_between_tries = 1
+ASSEMBLY_DATABASE = 'Assembly'
 TERM = 'contig[Assembly Level]'
 COUNT = 'Count'
 BATCH_LIMIT = 10000
 ID_LIST = 'IdList'
 ID_LIST_JOIN_CHAR = ','
-VALIDATE = False
+ESUMMARY_VALIDATE = False
 DOCUMENT_SUMMARY_SET = 'DocumentSummarySet'
 DOCUMENT_SUMMARY = 'DocumentSummary'
 SPECIES = 'SpeciesName'
 OUTPUT_FILE_PREFIX = 'species_assemblycounts_'
 OUTPUT_FILE_EXTENSION = '.txt'
-ASSEMBLY_LOWERBOUND = 10
-ERROR_LOG_FILE = open('error_log_species_assemblies.txt', 'w')
-ERROR_MESSAGE_SERVER = 'NCBI server connection error'
+ASSEMBLY_COUNT_LOWERBOUND = 10
+LOG_FILE = open('LOG.txt', 'w')
 
 
-def count_assem_records(email, api_key):
+def count_overall_assemblydb_number(email, api_key):
 
     Entrez.email = email
     Entrez.api_key = api_key
 
-    try:
-        handle = Entrez.esearch(db=DATABASE, term=TERM)
+    for attempts in range(1, 4):
+        try:
+            handle = Entrez.esearch(db=ASSEMBLY_DATABASE, term=TERM)
 
-    except Exception:
-        raise Exception('Either internet failure OR invalid/incorrect ordering ' +
-            'of input parameters (email, API key) OR some unexpected failure..Exiting...')
+        except Exception:
+            overall_num_assemblies = 0
 
-    else:
-        record = Entrez.read(handle)
-        num_assemblies = record[COUNT]
+        else:
+            record = Entrez.read(handle)
+            overall_num_assemblies = int(record[COUNT])
+            if overall_num_assemblies > 0:
+                break
 
-    return int(num_assemblies)
+    if overall_num_assemblies == 0:
+        log_message = 'Either internet failure OR invalid/incorrect ordering ' + \
+            'of input parameters (email, API key) OR some unexpected failure..Exiting...\n'
+        LOG_FILE.write(log_message)
+
+    return overall_num_assemblies
 
 
-def retrieve_assem_records(num_assemblies):
+def retrieve_species_assembly_counts(overall_num_assemblies):
 
     species_assembly_dict = defaultdict(int)
 
-    handle1 = Entrez.esearch(db=DATABASE, term=TERM, retmax=num_assemblies)
-    record1 = Entrez.read(handle1)
-    num_batches, last_batch_size = divmod(num_assemblies, BATCH_LIMIT)
+    if overall_num_assemblies > 0:
+        for attempts in range(1, 4):
+            try:
+                handle1 = Entrez.esearch(db=ASSEMBLY_DATABASE, term=TERM, retmax=overall_num_assemblies)
+        
+            except Exception:
+                pass
 
-    for batch_instance in range(0, num_batches + 1):
-        idlist_batch_instance = []
-        batch_start = BATCH_LIMIT * batch_instance
+            else:
+                record1 = Entrez.read(handle1)
+                num_batches, last_batch_size = divmod(overall_num_assemblies, BATCH_LIMIT)
 
-        if batch_instance < num_batches:
-            batch_end = batch_start + BATCH_LIMIT
+                for batch_instance in range(0, num_batches + 1):
+                    idlist_batch_instance = []
+                    batch_start = BATCH_LIMIT * batch_instance
 
-        elif batch_instance == num_batches:
-            batch_end = batch_start + last_batch_size
+                    if batch_instance < num_batches:
+                        batch_end = batch_start + BATCH_LIMIT
 
-        for i in range(batch_start, batch_end):
-            idlist_batch_instance.append(record1[ID_LIST][i])
+                    elif batch_instance == num_batches:
+                        batch_end = batch_start + last_batch_size
 
-        append_species_dict(idlist_batch_instance, species_assembly_dict)
+                    for i in range(batch_start, batch_end):
+                        idlist_batch_instance.append(record1[ID_LIST][i])
 
-        string1 = str(batch_end) + ' document summaries processed. '
-        string2 = 'Species dictionary has ' + str(len(species_assembly_dict)) + ' records'
-        print(string1 + string2)
+                    append_species_dict(idlist_batch_instance, species_assembly_dict, batch_start, batch_end)
+
+                if species_assembly_dict:
+                    break
 
     return species_assembly_dict
 
 
-def append_species_dict(idlist_batch_instance, species_assembly_dict):
+def append_species_dict(idlist_batch_instance, species_assembly_dict, batch_start_index, batch_end_index):
 
-    esum = Entrez.esummary(db=DATABASE, id=ID_LIST_JOIN_CHAR.join(idlist_batch_instance))
-    docsum = Entrez.read(esum, validate=VALIDATE)
-
-    for j in range(0, len(idlist_batch_instance)):
-
+    esummary = {}
+    for attempts in range(1, 4):
         try:
-            species = docsum[DOCUMENT_SUMMARY_SET][DOCUMENT_SUMMARY][j][SPECIES]
-            species_assembly_dict[species] += 1
+            esum = Entrez.esummary(db=ASSEMBLY_DATABASE, id=ID_LIST_JOIN_CHAR.join(idlist_batch_instance))
 
-        except IndexError:
-            # Species can't be retrieved due to NCBI server connection issue. Skipping and moving ahead
-            error = genbank_id + ' ' + ERROR_MESSAGE_SERVER
-            ERROR_LOG_FILE.write(error)
+        except Exception:
+            pass
 
-def species_dicn_write(species_assembly_dict, output_file):
+        else:
+            esummary[attempts] = 'success'
+            docsum = Entrez.read(esum, validate=ESUMMARY_VALIDATE)
+            for j in range(0, len(idlist_batch_instance)):
+                try:
+                    species = docsum[DOCUMENT_SUMMARY_SET][DOCUMENT_SUMMARY][j][SPECIES]
 
-    if species_assembly_dict:
-        for species in sorted(species_assembly_dict, key=species_assembly_dict.get, reverse=True):
-            if species_assembly_dict[species] >= 10:
-                output_file.write('{}\t{}\n'.format(species, species_assembly_dict[species]))
+                except IndexError:
+                    log_message = 'Species for assembly UID ' + str(idlist_batch_instance[j]) + \
+                        ' is absent\n'
+                    LOG_FILE.write(log_message)
 
-        success = 'Species dictionary written'
+                else:
+                    species_assembly_dict[species] += 1
+
+            break
+
+    if esummary:
+        log_message = 'Assembly UIDs indices ' + str(batch_start_index) + ' to ' + \
+            str(batch_end_index) + "'s document summaries processed. Species " + \
+            'dictionary has ' + str(len(species_assembly_dict)) + ' unique species\n'
+        print(log_message, end='')
 
     else:
-        success = 'No species dictionary from previous steps'
+        log_message = 'esummary for assembly UIDs ' + str(batch_start_index) + ' to ' + \
+            str(batch_end_index) + "'s cannot be retrieved due to NCBI server connection error\n"
+        LOG_FILE.write(log_message)
+        print(log_message, end='')
 
-    return success
+
+def write_species_dict(species_assembly_dict):
+
+    if species_assembly_dict:
+        num_species_to_file = 0
+        month_year_stamp = date.today().strftime("%b_%Y")
+        output_file_name = OUTPUT_FILE_PREFIX + month_year_stamp + OUTPUT_FILE_EXTENSION
+        with open(output_file_name, 'w') as output_file:
+            output_file.write('Species\tNum_assemblies\n')
+            for species in sorted(species_assembly_dict, key=species_assembly_dict.get, reverse=True):
+                if species_assembly_dict[species] >= ASSEMBLY_COUNT_LOWERBOUND:
+                    output_file.write('{}\t{}\n'.format(species, species_assembly_dict[species]))
+                    num_species_to_file += 1
+
+        output_file.close()
+        log_message = str(num_species_to_file) + ' species in NCBI assembly database with assembly ' + \
+            'counts written to ' + output_file_name + '\n'
+
+    else:
+        log_message = "Species' assembly counts cannot be determined\n"
+
+    return log_message
 
 
 def main():
@@ -135,18 +182,15 @@ def main():
     email = args.email
     api_key = args.api_key
 
-    try:
-        num_assemblies = count_assem_records(email, api_key)
-    except Exception as e:
-        sys.exit(e)
-
-    species_assembly_dict = retrieve_assem_records(num_assemblies)
-
-    month_year_stamp = date.today().strftime("%b_%Y")
-    output_file = open(OUTPUT_FILE_PREFIX + month_year_stamp + OUTPUT_FILE_EXTENSION, 'w')
-    output_file.write('Species\tNum_assemblies\n')
-
-    print(species_dicn_write(species_assembly_dict, output_file))
+    LOG_FILE.write('\n#########################################################\n')
+    LOG_FILE.write("Getting species' assembly counts in NCBI\n")
+    LOG_FILE.write('#########################################################\n')
+    
+    num_assemblies = count_overall_assemblydb_number(email, api_key)
+    species_assembly_dict = retrieve_species_assembly_counts(num_assemblies)
+    final_message = write_species_dict(species_assembly_dict)
+    LOG_FILE.write(final_message)
+    LOG_FILE.close()
 
 
 if __name__ == '__main__':

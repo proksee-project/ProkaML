@@ -40,7 +40,7 @@ rule species_count:
     shell:
         "python get_species_assemblies.py {config[email]} {config[api_key]}"
 
-rule append_taxonomical_kingdom:
+rule taxonomy:
     conda: 
         "dependencies.yaml"
     input:
@@ -48,7 +48,7 @@ rule append_taxonomical_kingdom:
     output:
         species_assembly_counts_taxonomy
     shell:
-        "python get_taxonomical_kingdom.py {config[email]} {config[api_key]}"
+        "python get_species_taxonomy.py {config[email]} {config[api_key]}"
 
 checkpoint retrieve_id_list:
     conda: 
@@ -58,7 +58,7 @@ checkpoint retrieve_id_list:
     output:
         directory("entrez_id_list")
     shell:
-        "python retrieve_idlist.py {config[email]} {config[api_key]} {input}"
+        "python retrieve_idlist.py {config[email]} {config[api_key]}"
 
 rule obtain_entrez_metadata:
     conda: 

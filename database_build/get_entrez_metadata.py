@@ -51,4 +51,5 @@ output_file = open(os.path.join(OUTPUT_DIR, output_filename), 'w')
 Entrez.email = args.email
 Entrez.api_key = args.api_key
 idlist_metadata = EntrezMetadata(id_list)
-idlist_metadata.print_genomic_metadata(output_file)
+num_success, num_failure = idlist_metadata.print_genomic_metadata(output_file)
+

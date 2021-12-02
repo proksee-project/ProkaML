@@ -24,6 +24,16 @@ import re
 Entrez.max_tries = 10
 ERROR_LOG_FILE = open('error_log_entrez_metadata.txt', 'w')
 ERROR_MESSAGE_SERVER = "Can't fetch metadata from NCBI server"
+ASSEMBLY_DATABASE = 'Assembly'
+ESUMMARY_VALIDATE = False
+ID_LIST_JOIN_CHAR = ','
+SEPARATOR = '\t'
+DOCUMENT_SUMMARY_SET = 'DocumentSummarySet'
+DOCUMENT_SUMMARY = 'DocumentSummary'
+LOG_FILE = open('LOG.txt', 'a')
+idlist_success_count = 0
+idlist_failures_count = 0
+
 
 class EntrezMetadata():
     """
@@ -45,16 +55,27 @@ class EntrezMetadata():
 
         self.idlist = idlist
 
-        # Obtain document summaries of assemblies using Entrez esummary function
-        esum = Entrez.esummary(db="assembly", id=",".join(self.idlist))
+    def get_document_summaries(self, idlist):
+        
+        for attempts in range(1, 4):
+            try:
+                esum = Entrez.esummary(db=ASSEMBLY_DATABASE, id=ID_LIST_JOIN_CHAR.join(self.idlist))
 
-        try:
-            self.document_summary = Entrez.read(esum, validate=False)
+            except Exception:
+                document_summaries = {}
 
-        except Exception:
-            error = idlist + ' ' + ERROR_MESSAGE_SERVER
-            ERROR_LOG_FILE.write(error)
+            else:
+                document_summaries = Entrez.read(esum, validate=ESUMMARY_VALIDATE)
+                if document_summaries:
+                    break
+        
+        if document_summaries:
+            log_message = ''
 
+        else:
+            log_message = 'document summaries could not be obtained\n'
+
+        return log_message, document_summaries
 
     def print_genomic_metadata(self, outfile):
         """
@@ -68,13 +89,23 @@ class EntrezMetadata():
             to output file
         """
 
-        for j in range(0, len(self.idlist)):
-            document_dict = self.document_summary['DocumentSummarySet']['DocumentSummary'][j]
+        log_message, document_summaries = self.get_document_summaries(self.idlist)
+        idlist_success_count = 0
+        idlist_failures_count = 0
 
-            separator = '\t'
-            metadata_string = separator.join(self.get_metadata(document_dict))
-            outfile.write(metadata_string + '\n')
-            print(str(j) + 'th record processed. GbUid: ' + document_dict['GbUid'])
+        if len(log_message) == 0:
+            idlist_success_count += len(self.idlist)
+            for j in range(0, len(self.idlist)):
+                document_dict = document_summaries[DOCUMENT_SUMMARY_SET][DOCUMENT_SUMMARY][j]
+                metadata_string = SEPARATOR.join(self.get_metadata(document_dict))
+                outfile.write(metadata_string + '\n')
+                print(str(j) + 'th record processed. GbUid: ' + document_dict['GbUid'])
+
+        else:
+            idlist_failures_count += len(self.idlist)
+            LOG_FILE.write('Document summaries could not be obtained for ' + str(idlist_failures_count) + ' \n')
+
+        return idlist_success_count, idlist_failures_count
 
     def get_metadata(self, document_dict):
         """

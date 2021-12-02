@@ -22,21 +22,26 @@ import os
 from Bio import Entrez
 import re
 import argparse
+from datetime import date
 
-CHUNK_DIVISOR = 10000
+INPUT_FILE_PREFIX = 'species_assemblycounts_'
+INPUT_FILE_SUFFIX = '_taxonomy.txt'
+OUTPUT_TABLE_SUFFIX = '_UIDs_numbers.txt'
 SEPARATOR = '\t'
 KINGDOM = 'Kingdom'
 SPECIES = 'Species'
 NUM_ASSEMBLIES = 'Num_assemblies'
+NUM_UIDs = 'Num_UIDs'
 PROKARYOTES = ['Bacteria', 'Archaea']
 
-DATABASE = 'assembly'
+ASSEMBLY_DATABASE = 'Assembly'
 TERM_EXTENSION = '[Organism] AND contig[Assembly Level]'
 ID_LIST = 'IdList'
 ID_LIST_LIMIT = 10000
 OUTPUT_DIR = 'entrez_id_list'
 ENTREZ_METADATA_DIR = 'entrez_species_metadata'
 ADDITIONAL_METADATA_DIR = 'additional_species_metadata'
+LOG_FILE = open('LOG.txt', 'a')
 
 
 def select_prokaryote_species(input_file):
@@ -51,41 +56,43 @@ def select_prokaryote_species(input_file):
 def get_id_list(species, num_assemblies):
 
     # Returns list of assembly UIDs for a given species
-    try:
-        handle = Entrez.esearch(db=DATABASE,
-                                term=species + TERM_EXTENSION,
-                                retmax=num_assemblies)
+    for attempts in range(1, 4):
+        try:
+            handle = Entrez.esearch(db=ASSEMBLY_DATABASE,
+                                    term=species + TERM_EXTENSION,
+                                    retmax=num_assemblies)
 
-    except Exception:
-        raise Exception('Either connection failure OR some unexpected failure..Exiting...')
+        except Exception:
+            record[ID_LIST] = []
 
-    else:
-        record = Entrez.read(handle)
+        else:
+            record = Entrez.read(handle)
+            break
 
     return record[ID_LIST]
 
 
-def get_num_chunks(id_list):
+def get_species_num_chunks(species_id_list):
 
     # Calculates number of file chunks for a species' list of UIDs
-    if len(id_list) % ID_LIST_LIMIT == 0:
-        num_chunks = int(len(id_list)/ID_LIST_LIMIT)
+    if len(species_id_list) % ID_LIST_LIMIT == 0:
+        num_chunks = int(len(species_id_list)/ID_LIST_LIMIT)
     else:
-        num_chunks = int(len(id_list)/ID_LIST_LIMIT) + 1
+        num_chunks = int(len(species_id_list)/ID_LIST_LIMIT) + 1
 
     return num_chunks
 
 
 def get_species_idlist_filelist(species, num_chunks):
 
-    # Generates species-chunk specific output files for writing UIDs
-    species_outfile_list = []
-    species_name_list = re.split(r'\s', species)
+    # Generates species specific id list files with limit of 10000 id per file
+    species_id_outfile_list = []
+    species_split = re.split(r'\s', species)
     for i in range(1, num_chunks + 1):
-        outfile = "_".join(species_name_list) + '_chunk' + str(i) + '_idlist.txt'
-        species_outfile_list.append(outfile)
+        id_outfile = "_".join(species_split) + '_chunk' + str(i) + '_idlist.txt'
+        species_id_outfile_list.append(id_outfile)
 
-    return species_outfile_list
+    return species_id_outfile_list
 
 
 def write_idlist_filechunks(index, species, id_list, num_chunks, file_list):
@@ -93,11 +100,14 @@ def write_idlist_filechunks(index, species, id_list, num_chunks, file_list):
     # Writes UIDs to species-chunk specific output files
     count = index + 1
     if num_chunks == 0:
-        print(str(count) + ' species processing: ' + str(species) +
-                ' returns empty ID list with esearch. skipping..')
+        log_message = str(count) + ' species processing: ' + str(species) + \
+            ' returns empty ID list\n'
+        print(log_message, end='')
 
     elif num_chunks > 0:
-        print(str(count) + ' species processing: ' + str(species))
+        log_message = str(count) + ' species processing: ' + str(species) + \
+            ' writing UIDs to file\n'
+        print(log_message, end='')
         for k in range(0, num_chunks):
             output_file = open(os.path.join(OUTPUT_DIR, file_list[k]), 'w')
             idlist_lowerlimit = k * ID_LIST_LIMIT
@@ -107,7 +117,7 @@ def write_idlist_filechunks(index, species, id_list, num_chunks, file_list):
 
 
 def main():
-    my_parser = argparse.ArgumentParser(usage='python %(prog)s [-h] email api_key input_file',
+    my_parser = argparse.ArgumentParser(usage='python %(prog)s [-h] email api_key',
                                         description='Retrieves assembly UIDs from API queries')
     my_parser.add_argument('email',
                            type=str,
@@ -115,33 +125,59 @@ def main():
     my_parser.add_argument('api_key',
                            type=str,
                            help='NCBI user API key')
-    my_parser.add_argument('input_file',
-                           type=str,
-                           help='Input file containing species names, assembly counts and ' +
-                                'taxonomical kingdom')
     args = my_parser.parse_args()
 
     Entrez.email = args.email
     Entrez.api_key = args.api_key
-    input_file = args.input_file
+
+    month_year_stamp = date.today().strftime("%b_%Y")
+    input_file = INPUT_FILE_PREFIX + month_year_stamp + INPUT_FILE_SUFFIX
+
     if not os.path.exists(OUTPUT_DIR):
         os.mkdir(OUTPUT_DIR)
 
+    LOG_FILE.write('\n#########################################################\n')
+    LOG_FILE.write("Retrieving Species' specific assembly UIDs\n")
+    LOG_FILE.write('#########################################################\n')
+
     prokaryote_dataframe = select_prokaryote_species(input_file)
+    log_message = str(prokaryote_dataframe.shape[0]) + ' species are prokaryotes (Bacteria/' + \
+        'Archaea)\n' + 'Total assembly counts = ' + str(prokaryote_dataframe[NUM_ASSEMBLIES].sum()) + '\n'
+    LOG_FILE.write(log_message)
+
     species_list = prokaryote_dataframe[SPECIES].to_list()
     num_assemblies_list = prokaryote_dataframe[NUM_ASSEMBLIES].to_list()
+    num_UIDs_list = []
 
+    total_difference = 0
+    total_UIDs = 0
     for i in range(0, len(species_list)):
         species_id_list = get_id_list(species_list[i], num_assemblies_list[i])
-        species_num_chunks = get_num_chunks(species_id_list)
-        species_outfile_list = get_species_idlist_filelist(species_list[i], species_num_chunks)
+        num_UIDs_list.append(len(species_id_list))
 
-        write_idlist_filechunks(i, species_list[i], species_id_list, species_num_chunks, species_outfile_list)
+        difference = num_assemblies_list[i] - len(species_id_list)
+        total_difference += difference
+        total_UIDs += len(species_id_list)
+
+        if difference > 0:
+            log_message = 'Species ' + species_list[i] + ': ' + str(difference) + \
+                ' UIDs could not be retrieved\n'
+            LOG_FILE.write(log_message)
+
+        species_num_chunks = get_species_num_chunks(species_id_list)
+        species_id_outfile_list = get_species_idlist_filelist(species_list[i], species_num_chunks)
+        write_idlist_filechunks(i, species_list[i], species_id_list, species_num_chunks, \
+            species_id_outfile_list)
+
+    log_message = 'Total UIDs retrieved = ' + str(total_UIDs) + '\nTotal UIDs not retrieved = ' \
+        + str(total_difference) + '\n'
+    LOG_FILE.write(log_message)
 
     if not os.path.exists(ENTREZ_METADATA_DIR):
         os.mkdir(ENTREZ_METADATA_DIR)
     if not os.path.exists(ADDITIONAL_METADATA_DIR):
         os.mkdir(ADDITIONAL_METADATA_DIR)
+
 
 if __name__ == "__main__":
     main()
