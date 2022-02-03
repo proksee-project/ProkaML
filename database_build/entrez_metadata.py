@@ -21,16 +21,9 @@ from Bio import Entrez
 import urllib.request
 import urllib.error
 import re
-Entrez.max_tries = 10
-ERROR_LOG_FILE = open('error_log_entrez_metadata.txt', 'w')
-ERROR_MESSAGE_SERVER = "Can't fetch metadata from NCBI server"
-ASSEMBLY_DATABASE = 'Assembly'
-ESUMMARY_VALIDATE = False
-ID_LIST_JOIN_CHAR = ','
-SEPARATOR = '\t'
-DOCUMENT_SUMMARY_SET = 'DocumentSummarySet'
-DOCUMENT_SUMMARY = 'DocumentSummary'
-LOG_FILE = open('LOG.txt', 'a')
+import constants as const
+
+LOG = open(const.LOG_FILE + const.FILE_EXTENSION, mode=const.APPEND_MODE)
 idlist_success_count = 0
 idlist_failures_count = 0
 
@@ -56,19 +49,19 @@ class EntrezMetadata():
         self.idlist = idlist
 
     def get_document_summaries(self, idlist):
-        
-        for attempts in range(1, 4):
+
+        for attempts in range(const.API_QUERY_ATTEMPT_START, const.API_QUERY_ATTEMPT_END):
             try:
-                esum = Entrez.esummary(db=ASSEMBLY_DATABASE, id=ID_LIST_JOIN_CHAR.join(self.idlist))
+                esum = Entrez.esummary(db=const.ASSEMBLY_DATABASE, id=const.ID_LIST_JOIN_CHAR.join(self.idlist))
 
             except Exception:
                 document_summaries = {}
 
             else:
-                document_summaries = Entrez.read(esum, validate=ESUMMARY_VALIDATE)
+                document_summaries = Entrez.read(esum, validate=const.ESUMMARY_VALIDATE)
                 if document_summaries:
                     break
-        
+
         if document_summaries:
             log_message = ''
 
@@ -96,14 +89,14 @@ class EntrezMetadata():
         if len(log_message) == 0:
             idlist_success_count += len(self.idlist)
             for j in range(0, len(self.idlist)):
-                document_dict = document_summaries[DOCUMENT_SUMMARY_SET][DOCUMENT_SUMMARY][j]
-                metadata_string = SEPARATOR.join(self.get_metadata(document_dict))
-                outfile.write(metadata_string + '\n')
-                print(str(j) + 'th record processed. GbUid: ' + document_dict['GbUid'])
+                document_dict = document_summaries[const.DOCUMENT_SUMMARY_SET][const.DOCUMENT_SUMMARY][j]
+                metadata_string = const.SEPARATOR.join(self.get_metadata(document_dict))
+                outfile.write(metadata_string + const.NEW_LINE)
+                print('Count ' + str(int(j+1)) + ' assembly ' + document_dict['Synonym']['Genbank'] + ' : metadata obtained')
 
         else:
             idlist_failures_count += len(self.idlist)
-            LOG_FILE.write('Document summaries could not be obtained for ' + str(idlist_failures_count) + ' \n')
+            LOG.write('Document summaries could not be obtained for ' + str(idlist_failures_count) + const.NEW_LINE)
 
         return idlist_success_count, idlist_failures_count
 
@@ -513,7 +506,7 @@ class EntrezMetadata():
 
         if assembly_report_lines_string == 'NA' or assembly_report_lines_string == 'URLError':
             sequencing_platform = 'NA'
-
+ 
         else:
             sequencing_platform_regex = re.search(r'Sequencing\stechnology:\s(.+?);', assembly_report_lines_string)
             if sequencing_platform_regex is not None:

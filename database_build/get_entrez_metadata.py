@@ -21,10 +21,8 @@ import os
 import argparse
 from Bio import Entrez
 from entrez_metadata import EntrezMetadata
+import constants as const
 
-ID_LIST_FILE_EXTENSION = 'idlist.txt'
-METADATA_FILE_EXTENSION = 'metadata.txt'
-OUTPUT_DIR = 'entrez_species_metadata'
 
 my_parser = argparse.ArgumentParser(usage='python %(prog)s [-h] email api_key input_file_path',
                                     description='Obtains assembly attributes from API queries')
@@ -45,8 +43,8 @@ input_file_path = args.input_file_path
 with open(input_file_path) as f:
     id_list = f.read().splitlines()
 
-output_filename = os.path.basename(input_file_path).split(ID_LIST_FILE_EXTENSION)[0] + METADATA_FILE_EXTENSION
-output_file = open(os.path.join(OUTPUT_DIR, output_filename), 'w')
+output_filename = os.path.basename(input_file_path).split('.')[0] + const.METADATA_SUFFIX + const.FILE_EXTENSION
+output_file = open(os.path.join(const.ENTREZ_METADATA_DIR, output_filename), const.WRITE_MODE)
 
 Entrez.email = args.email
 Entrez.api_key = args.api_key

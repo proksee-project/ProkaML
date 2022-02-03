@@ -17,14 +17,10 @@ CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 '''
 
-from datetime import date
 import os
 import glob
 from os import environ
 
-month_year_stamp = date.today().strftime("%b_%Y")
-species_assembly_counts = 'species_assemblycounts_' + month_year_stamp + '.txt'
-species_assembly_counts_taxonomy = 'species_assemblycounts_' + month_year_stamp + '_taxonomy.txt'
 configfile: "config.yaml"
 integrated_metadata_file = 'well_represented_species_metadata.txt'
 
@@ -32,62 +28,59 @@ rule target:
     input:
         integrated_metadata_file
 
-rule species_count:
-    conda: 
-        "dependencies.yaml"
-    output:
-        species_assembly_counts      
-    shell:
-        "python get_species_assemblies.py {config[email]} {config[api_key]}"
 
-rule taxonomy:
+rule get_assembly_UIDs:
     conda: 
         "dependencies.yaml"
-    input:
-        species_assembly_counts
-    output:
-        species_assembly_counts_taxonomy
-    shell:
-        "python get_species_taxonomy.py {config[email]} {config[api_key]}"
-
-checkpoint retrieve_id_list:
-    conda: 
-        "dependencies.yaml"
-    input:
-        species_assembly_counts_taxonomy
     output:
         directory("entrez_id_list")
     shell:
-        "python retrieve_idlist.py {config[email]} {config[api_key]}"
+        "python get_assembly_UIDs.py {config[email]} {config[api_key]}"
+
 
 rule obtain_entrez_metadata:
     conda: 
         "dependencies.yaml"
     input:
-        "entrez_id_list/{i}_idlist.txt"
+        "entrez_id_list/Assembly_UID_chunk{i}.txt"
     output:
-        "entrez_species_metadata/{i}_metadata.txt"
+        "entrez_species_metadata/Assembly_UID_chunk{i}_metadata.txt"
     shell:
         "python get_entrez_metadata.py {config[email]} {config[api_key]} {input}"
 
-rule obtain_additional_metadata:
-    conda: 
+
+checkpoint organize_species_metadata:
+    conda:
         "dependencies.yaml"
     input:
-        "entrez_species_metadata/{i}_metadata.txt"
+        directory("entrez_species_metadata")
+    output:
+        directory("species_reorganized_metadata")
+    shell:
+        "python get_species_counts.py {config[email]} {config[api_key]}"
+
+
+rule append_additional_attributes:
+    conda:
+        "dependencies.yaml"
+    input:
+        "species_reorganized_metadata/{i}_metadata.txt"
     output:
         "additional_species_metadata/{i}_metadata_added_attributes.txt"
     shell:
         "python append_additional_attributes.py {config[email]} {config[api_key]} {input}"
 
-def aggregate_input(wildcards):
-    checkpoint_output = checkpoints.retrieve_id_list.get(**wildcards).output[0]
-    return expand("additional_species_metadata/{i}_metadata_added_attributes.txt", i=glob_wildcards(os.path.join(checkpoint_output, "{i}_idlist.txt")).i)
 
-rule concatenate_metadata:
+def aggregate_input(wildcards):
+    checkpoint_output = checkpoints.organize_species_metadata.get(**wildcards).output[0]
+    return expand("additional_species_metadata/{i}_metadata_added_attributes.txt", i=glob_wildcards(os.path.join(checkpoint_output, "{i}_metadata.txt")).i)
+
+
+rule aggregate:
     input:
         aggregate_input
     output:
         integrated_metadata_file
     shell:
         "python concatenate_metadata.py"
+

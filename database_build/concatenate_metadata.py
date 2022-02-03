@@ -32,7 +32,7 @@ THRESHOLD_INTERMEDIATE = 10
 PREFIX_INTERMEDIATE = 'intermediate'
 
 ADDITIONAL_METADATA_DIRECTORY = 'additional_species_metadata'
-METADATA_FILE_EXTENSION = '_chunk.+?_metadata_added_attributes.txt'
+METADATA_FILE_EXTENSION = '_metadata_added_attributes.txt'
 JOIN_CHARACTER = '_'
 SPLIT_CHARACTER = ' '
 SEPARATOR = '\t'
@@ -44,11 +44,11 @@ NUM_ASSEMBLIES = 'Num_assemblies'
 METADATA_FILES = 'Metadata_files'
 KEEP_DEFAULT_NA = False
 INTEGRATED_METADATA_FILE = 'well_represented_species_metadata.txt'
-ID_LIST_DIRECTORY = 'entrez_id_list'
+#ID_LIST_DIRECTORY = 'entrez_id_list'
 
 
 def threshold_metadata(dataframe):
-	dataframe = dataframe[dataframe[KINGDOM].str.contains(r'Archaea|Bacteria|NA\s\(Cannot')]
+	dataframe = dataframe[dataframe[KINGDOM].str.contains(r'Archaea|Bacteria', na=KEEP_DEFAULT_NA)]
 	df_major = dataframe[dataframe[NUM_ASSEMBLIES] >= THRESHOLD_MAJOR]
 	df_large = dataframe[(dataframe[NUM_ASSEMBLIES] >= THRESHOLD_LARGE) & (dataframe[NUM_ASSEMBLIES] < THRESHOLD_MAJOR)]
 	df_intermediate = dataframe[(dataframe[NUM_ASSEMBLIES] >= THRESHOLD_INTERMEDIATE) & (dataframe[NUM_ASSEMBLIES] < THRESHOLD_LARGE)]
@@ -56,12 +56,11 @@ def threshold_metadata(dataframe):
 
 	return categorical_list_dataframes
 
-def get_metadata_files(species):
-	species_pattern = JOIN_CHARACTER.join(species.split(SPLIT_CHARACTER)) + METADATA_FILE_EXTENSION
-	species_file_list = list(filter(re.compile(species_pattern).match, METADATA_FILE_LIST))
-	species_file_paths_list = [os.path.join(ADDITIONAL_METADATA_DIRECTORY, file) for file in species_file_list]
+def get_metadata_file(species):
+	species_file = JOIN_CHARACTER.join(species.split(SPLIT_CHARACTER)) + METADATA_FILE_EXTENSION
+	species_file_path = os.path.join(ADDITIONAL_METADATA_DIRECTORY, species_file)
 
-	return species_file_paths_list
+	return species_file_path
 
 def merge_series_list(metadata_file_series):
 	"""
@@ -74,7 +73,6 @@ def merge_series_list(metadata_file_series):
 				merged_file_list.append(i)
 
 	return merged_file_list
-
 
 def main():
 	month_year_stamp = date.today().strftime("%b_%Y")
@@ -93,7 +91,7 @@ def main():
 		categorical_integrated_metadata_file = category + '_species_metadata.txt'
 
 		df = categorical_list_dataframes[i]
-		df[METADATA_FILES] = df.apply(lambda row: get_metadata_files(row[SPECIES]), axis=1)
+		df[METADATA_FILE] = df.apply(lambda row: get_metadata_file(row[SPECIES]), axis=1)
 		categorical_metadata_file_list = merge_series_list(df[METADATA_FILES].to_list())
 		categorical_metadataframe_list = []
 
@@ -102,17 +100,23 @@ def main():
 
 		else:
 			for j in categorical_metadata_file_list:
-				species_chunk_dataframe = pd.read_csv(j, sep=SEPARATOR, keep_default_na=KEEP_DEFAULT_NA)
-				categorical_metadataframe_list.append(species_chunk_dataframe)
+				try:
+					species_chunk_dataframe = pd.read_csv(j, sep=SEPARATOR, keep_default_na=KEEP_DEFAULT_NA)
+					categorical_metadataframe_list.append(species_chunk_dataframe)
+				except FileNotFoundError:
+					pass
 
-			categorical_integrated_dataframe = pd.concat(categorical_metadataframe_list)
-			categorical_integrated_dataframe.to_csv(categorical_integrated_metadata_file, sep=SEPARATOR, index=False)
+			try:
+				categorical_integrated_dataframe = pd.concat(categorical_metadataframe_list)
+				categorical_integrated_dataframe.to_csv(categorical_integrated_metadata_file, sep=SEPARATOR, index=False)
+			except ValueError:
+				pass
 
 		all_species_integrated_dataframe_list.append(categorical_integrated_dataframe)
 
 	all_species_integrated_dataframe = pd.concat(all_species_integrated_dataframe_list)
 	all_species_integrated_dataframe.to_csv(INTEGRATED_METADATA_FILE, sep=SEPARATOR, index=False)
-	shutil.rmtree(ID_LIST_DIRECTORY)
+	#shutil.rmtree(ID_LIST_DIRECTORY)
 
 if __name__ == '__main__':
 	main()

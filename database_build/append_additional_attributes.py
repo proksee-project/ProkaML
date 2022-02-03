@@ -41,11 +41,6 @@ WRITE_MODE = 'w'
 KEEP_INDEX = False
 
 ADDITIONAL_METADATA_DIR = 'additional_species_metadata'
-METADATA_COLUMNS = ['Organism Name', 'Strain/Isolate', 'Assembly Name', 'Genbank Accession',
-                    'Refseq Accession', 'Genome Coverage', 'Submission Date', 'Last Update Date',
-                    'Refseq Exclusion Reason', 'ContigN50', 'Contig count', 'ContigL50',
-                    'Total length', 'Assembly Method', 'Sequencing Technology']
-
 my_parser = argparse.ArgumentParser(usage='python %(prog)s [-h] email api_key input_file_path',
                                     description='Obtains assembly attributes from API queries')
 my_parser.add_argument('email',
@@ -68,7 +63,7 @@ input_file = os.path.basename(input_file_path)
 output_file = input_file.split(FILENAME_SPLIT_PATTERN)[FILENAME_ID_INDEX] + FILENAME_EXTN
 output_file_path = os.path.join(ADDITIONAL_METADATA_DIR, output_file)
 
-dataframe = pd.read_csv(input_file_path, sep=SEPARATOR, names=METADATA_COLUMNS, keep_default_na=False, low_memory=LOW_MEMORY)
+dataframe = pd.read_csv(input_file_path, sep=SEPARATOR, keep_default_na=False, low_memory=LOW_MEMORY)
 calculate_gc_content = GCContentCalculate(email, api_key, dataframe)
 dataframe[GC_CONTENT] = calculate_gc_content.append_gc_content()
 
