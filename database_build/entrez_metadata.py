@@ -23,10 +23,6 @@ import urllib.error
 import re
 import constants as const
 
-LOG = open(const.LOG_FILE + const.FILE_EXTENSION, mode=const.APPEND_MODE)
-idlist_success_count = 0
-idlist_failures_count = 0
-
 
 class EntrezMetadata():
     """
@@ -53,22 +49,16 @@ class EntrezMetadata():
         for attempts in range(const.API_QUERY_ATTEMPT_START, const.API_QUERY_ATTEMPT_END):
             try:
                 esum = Entrez.esummary(db=const.ASSEMBLY_DATABASE, id=const.ID_LIST_JOIN_CHAR.join(self.idlist))
+                document_summaries = Entrez.read(esum, validate=const.ESUMMARY_VALIDATE)
 
             except Exception:
                 document_summaries = {}
 
             else:
-                document_summaries = Entrez.read(esum, validate=const.ESUMMARY_VALIDATE)
                 if document_summaries:
                     break
 
-        if document_summaries:
-            log_message = ''
-
-        else:
-            log_message = 'document summaries could not be obtained\n'
-
-        return log_message, document_summaries
+        return document_summaries
 
     def print_genomic_metadata(self, outfile):
         """
@@ -82,23 +72,40 @@ class EntrezMetadata():
             to output file
         """
 
-        log_message, document_summaries = self.get_document_summaries(self.idlist)
+        document_summaries = self.get_document_summaries(self.idlist)
         idlist_success_count = 0
         idlist_failures_count = 0
+        irretrievable_uids = []
+        successful_uids = []
 
-        if len(log_message) == 0:
-            idlist_success_count += len(self.idlist)
-            for j in range(0, len(self.idlist)):
-                document_dict = document_summaries[const.DOCUMENT_SUMMARY_SET][const.DOCUMENT_SUMMARY][j]
-                metadata_string = const.SEPARATOR.join(self.get_metadata(document_dict))
-                outfile.write(metadata_string + const.NEW_LINE)
-                print('Count ' + str(int(j+1)) + ' assembly ' + document_dict['Synonym']['Genbank'] + ' : metadata obtained')
+        if len(document_summaries) > 0:
+            idlist_success_count = len(document_summaries[const.DOCUMENT_SUMMARY_SET][const.DOCUMENT_SUMMARY])
+            if idlist_success_count == len(self.idlist):
+                for j in range(0, len(self.idlist)):
+                    document_dict = document_summaries[const.DOCUMENT_SUMMARY_SET][const.DOCUMENT_SUMMARY][j]
+                    metadata_string = const.SEPARATOR.join(self.get_metadata(document_dict))
+                    outfile.write(metadata_string + const.NEW_LINE)
+                    print('Count ' + str(int(j+1)) + ' assembly ' + document_dict['Synonym']['Genbank'] + ' : metadata obtained')
+
+            else:
+                idlist_failures_count = len(self.idlist) - len(document_summaries[const.DOCUMENT_SUMMARY_SET][const.DOCUMENT_SUMMARY])
+                for j in range(0, len(document_summaries[const.DOCUMENT_SUMMARY_SET][const.DOCUMENT_SUMMARY])):
+                    retrievable_uid = document_summaries[const.DOCUMENT_SUMMARY_SET][const.DOCUMENT_SUMMARY][j].attributes['uid']
+                    successful_uids.append(retrievable_uid)
+                    document_dict = document_summaries[const.DOCUMENT_SUMMARY_SET][const.DOCUMENT_SUMMARY][j]
+                    metadata_string = const.SEPARATOR.join(self.get_metadata(document_dict))
+                    outfile.write(metadata_string + const.NEW_LINE)
+                    print('Count ' + str(int(j+1)) + ' assembly ' + document_dict['Synonym']['Genbank'] + ' : metadata obtained')
+
+                for k in range(0, len(self.idlist)):
+                    if self.idlist[k] not in successful_uids:
+                        irretrievable_uids.append(self.idlist[k])
 
         else:
-            idlist_failures_count += len(self.idlist)
-            LOG.write('Document summaries could not be obtained for ' + str(idlist_failures_count) + const.NEW_LINE)
+            idlist_failures_count = len(self.idlist)
+            irretrievable_uids.append(self.idlist)
 
-        return idlist_success_count, idlist_failures_count
+        return idlist_success_count, idlist_failures_count, irretrievable_uids
 
     def get_metadata(self, document_dict):
         """

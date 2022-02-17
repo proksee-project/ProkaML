@@ -22,14 +22,13 @@ import glob
 from os import environ
 
 configfile: "config.yaml"
-integrated_metadata_file = 'well_represented_species_metadata.txt'
 
 rule target:
     input:
-        integrated_metadata_file
+        "well_represented_species_metadata.txt"
 
 
-rule get_assembly_UIDs:
+checkpoint get_assembly_UIDs:
     conda: 
         "dependencies.yaml"
     output:
@@ -49,11 +48,30 @@ rule obtain_entrez_metadata:
         "python get_entrez_metadata.py {config[email]} {config[api_key]} {input}"
 
 
-checkpoint organize_species_metadata:
-    conda:
+def log_entrez_metadata_report(wildcards):
+    ck_output = checkpoints.get_assembly_UIDs.get(**wildcards).output[0]
+    return expand("log_entrez_metadata_chunk{i}.txt", i=glob_wildcards(os.path.join(ck_output,"Assembly_UID_chunk{i}.txt")).i)
+
+
+rule log_entrez_metadata:
+    conda: 
         "dependencies.yaml"
     input:
-        directory("entrez_species_metadata")
+        log_entrez_metadata_report
+    shell:
+        "python log_entrez_metadata.py"
+
+
+def entrez_metadata_input(wildcards):
+    ck_output = checkpoints.get_assembly_UIDs.get(**wildcards).output[0]
+    return expand("entrez_species_metadata/Assembly_UID_chunk{i}_metadata.txt", i=glob_wildcards(os.path.join(ck_output,"Assembly_UID_chunk{i}.txt")).i)
+
+
+checkpoint get_species_counts:
+    conda: 
+        "dependencies.yaml"
+    input:
+        entrez_metadata_input
     output:
         directory("species_reorganized_metadata")
     shell:
@@ -61,26 +79,27 @@ checkpoint organize_species_metadata:
 
 
 rule append_additional_attributes:
-    conda:
+    conda: 
         "dependencies.yaml"
     input:
-        "species_reorganized_metadata/{i}_metadata.txt"
+        "species_reorganized_metadata/{j}_metadata.txt"
     output:
-        "additional_species_metadata/{i}_metadata_added_attributes.txt"
+        "additional_species_metadata/{j}_metadata_added_attributes.txt"
     shell:
-        "python append_additional_attributes.py {config[email]} {config[api_key]} {input}"
+        "python get_species_counts.py {config[email]} {config[api_key]} {input}"
 
 
-def aggregate_input(wildcards):
-    checkpoint_output = checkpoints.organize_species_metadata.get(**wildcards).output[0]
-    return expand("additional_species_metadata/{i}_metadata_added_attributes.txt", i=glob_wildcards(os.path.join(checkpoint_output, "{i}_metadata.txt")).i)
+def additional_metadata_input(wildcards):
+    ck_output = checkpoints.get_species_counts.get(**wildcards).output[0]
+    return expand("additional_species_metadata/{j}_metadata_added_attributes.txt", j=glob_wildcards(os.path.join(ck_output,"{j}_metadata.txt")).j)
 
 
-rule aggregate:
+rule concatenate_metadata:
+    conda: 
+        "dependencies.yaml"
     input:
-        aggregate_input
+        additional_metadata_input
     output:
-        integrated_metadata_file
+        "well_represented_species_metadata.txt"
     shell:
         "python concatenate_metadata.py"
-

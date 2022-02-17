@@ -22,7 +22,8 @@ for file in filelist:
 reorganized_metadata_dir = 'species_reorganized_metadata'
 if not os.path.exists(reorganized_metadata_dir):
 	os.mkdir(reorganized_metadata_dir)
-
+if not os.path.exists(const.ADDITIONAL_METADATA_DIR):
+	os.mkdir(const.ADDITIONAL_METADATA_DIR)
 my_parser = argparse.ArgumentParser(usage='python %(prog)s [-h] email api_key',
 									description='Gets full taxonomical lineage for species')
 my_parser.add_argument('email',

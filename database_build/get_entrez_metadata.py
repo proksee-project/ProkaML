@@ -22,7 +22,7 @@ import argparse
 from Bio import Entrez
 from entrez_metadata import EntrezMetadata
 import constants as const
-
+import re
 
 my_parser = argparse.ArgumentParser(usage='python %(prog)s [-h] email api_key input_file_path',
                                     description='Obtains assembly attributes from API queries')
@@ -39,6 +39,9 @@ my_parser.add_argument('input_file_path',
 args = my_parser.parse_args()
 
 input_file_path = args.input_file_path
+pattern = re.search(r'.*chunk(\d+)\.txt', os.path.basename(input_file_path))
+file_number = pattern.group(1)
+log_file = open('log_entrez_metadata_chunk' + file_number + '.txt', 'w')
 
 with open(input_file_path) as f:
     id_list = f.read().splitlines()
@@ -49,5 +52,6 @@ output_file = open(os.path.join(const.ENTREZ_METADATA_DIR, output_filename), con
 Entrez.email = args.email
 Entrez.api_key = args.api_key
 idlist_metadata = EntrezMetadata(id_list)
-num_success, num_failure = idlist_metadata.print_genomic_metadata(output_file)
+num_success, num_failure, irretrievable_uids = idlist_metadata.print_genomic_metadata(output_file)
+log_file.write('{}\t{}\t{}\t{}\n'.format(file_number, num_success, num_failure, irretrievable_uids))
 
