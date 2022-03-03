@@ -46,6 +46,9 @@ output_file = open(output_file_name, const.WRITE_MODE)
 output_file.write('\t'.join([str(x) for x in ('Species', 'Num_assemblies', 'Kingdom', 'Phylum', 'Class', \
 	'Order', 'Family', 'Genus')]) + '\n')
 
+assemblies_included = 0
+assemblies_excluded = 0
+
 for species, dataframe_list in entrez_metadata.items():
 	df = pd.concat(entrez_metadata[species])
 	species_corrected =	re.sub(unexpected_chars, const.EMPTY_STRING, species)
@@ -54,5 +57,21 @@ for species, dataframe_list in entrez_metadata.items():
 		taxonomy = Taxonomy(species_corrected, email, api_key)
 		taxonomy_list = taxonomy.get_full_taxonomy()
 		output_file.write('\t'.join([species_corrected, str(num_assemblies[species]), *taxonomy_list]) + '\n')
-		species_metadata_file = '_'.join(species_corrected.split(' ')) + const.METADATA_SUFFIX + const.FILE_EXTENSION
-		df.to_csv(os.path.join(reorganized_metadata_dir, species_metadata_file), sep=const.SEPARATOR, index=False)
+		if (taxonomy_list[0] == 'Bacteria' or taxonomy_list[0] == 'Archaea'):
+			species_metadata_file = '_'.join(species_corrected.split(' ')) + const.METADATA_SUFFIX + const.FILE_EXTENSION
+			df.to_csv(os.path.join(reorganized_metadata_dir, species_metadata_file), sep=const.SEPARATOR, index=False)
+
+			assemblies_included += df.shape[0]
+
+		else:
+			assemblies_excluded += df.shape[0]
+
+	else:
+		assemblies_excluded += df.shape[0]
+
+log = open(const.LOG_FILE + const.FILE_EXTENSION, mode=const.APPEND_MODE)
+log.write('\n#########################################################\n')
+log.write("Reorganizing NCBI metadata, filtering by assembly counts, relevant species' taxonomy\n")
+log.write('#########################################################\n')
+log.write('Assemblies included: {}\n'.format(assemblies_included))
+log.write('Assemblies excluded: {}\n'.format(assemblies_excluded))

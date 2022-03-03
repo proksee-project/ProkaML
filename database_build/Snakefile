@@ -84,21 +84,29 @@ rule append_additional_attributes:
     input:
         "species_reorganized_metadata/{j}_metadata.txt"
     output:
-        "additional_species_metadata/{j}_metadata_added_attributes.txt"
+        "additional_species_metadata/{j}_added_attributes.txt"
     shell:
-        "python get_species_counts.py {config[email]} {config[api_key]} {input}"
+        "python append_additional_attributes.py {config[email]} {config[api_key]} {input}"
 
 
-def additional_metadata_input(wildcards):
+def log_gc_content(wildcards):
     ck_output = checkpoints.get_species_counts.get(**wildcards).output[0]
-    return expand("additional_species_metadata/{j}_metadata_added_attributes.txt", j=glob_wildcards(os.path.join(ck_output,"{j}_metadata.txt")).j)
+    return expand("{j}_log_gc_content.txt", j=glob_wildcards(os.path.join(ck_output,"{j}_metadata.txt")).j)
+
+rule log_gc_content:
+    conda: 
+        "dependencies.yaml"
+    input:
+        log_gc_content
+    shell:
+        "python log_gc_content.py"
 
 
 rule concatenate_metadata:
     conda: 
         "dependencies.yaml"
     input:
-        additional_metadata_input
+        log_gc_content
     output:
         "well_represented_species_metadata.txt"
     shell:

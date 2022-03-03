@@ -31,7 +31,7 @@ from entrez_metadata import EntrezMetadata
 from gc_content import GCContentCalculate
 
 SEPARATOR = '\t'
-FILENAME_SPLIT_PATTERN = '.txt'
+FILENAME_SPLIT_PATTERN = '_metadata.txt'
 FILENAME_ID_INDEX = 0
 FILENAME_EXTN = '_added_attributes.txt'
 GC_CONTENT = 'GCcontent'
@@ -51,7 +51,7 @@ my_parser.add_argument('api_key',
                         help='NCBI user API key')
 my_parser.add_argument('input_file_path',
                         type=str,
-                        help='path to file containing assembly UIDs')
+                        help='path to file containing species metadata')
 
 args = my_parser.parse_args()
 
@@ -60,11 +60,15 @@ api_key = args.api_key
 input_file_path = args.input_file_path
 
 input_file = os.path.basename(input_file_path)
+species_name = input_file.split(FILENAME_SPLIT_PATTERN)[FILENAME_ID_INDEX]
 output_file = input_file.split(FILENAME_SPLIT_PATTERN)[FILENAME_ID_INDEX] + FILENAME_EXTN
 output_file_path = os.path.join(ADDITIONAL_METADATA_DIR, output_file)
+species_log_file = open(species_name + '_log_gc_content.txt', WRITE_MODE)
 
 dataframe = pd.read_csv(input_file_path, sep=SEPARATOR, keep_default_na=False, low_memory=LOW_MEMORY)
-calculate_gc_content = GCContentCalculate(email, api_key, dataframe)
-dataframe[GC_CONTENT] = calculate_gc_content.append_gc_content()
+calculate_gc_content = GCContentCalculate(email, api_key, dataframe, species_log_file)
+dataframe[GC_CONTENT], num_success, num_failure = calculate_gc_content.append_gc_content()
 
 dataframe.to_csv(output_file_path, sep=SEPARATOR, mode=WRITE_MODE, index=KEEP_INDEX)
+
+species_log_file.write('{}\t{}\n'.format(num_success, num_failure))

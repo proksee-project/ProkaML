@@ -25,7 +25,6 @@ import urllib.error
 import gzip
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 OUTPUT_DIRECTORY = 'additional_species_metadata'
-ERROR_LOG_FILE = open('error_log_gccontent.txt', 'w')
 ERROR_MESSAGE_SERVER = 'NCBI server connection error'
 ERROR_MESSAGE_MISMATCH = 'Esummary vs actual assembly link mismatch error'
 ERROR_MESSAGE_ZLIB = 'zlib file opening error'
@@ -42,7 +41,7 @@ class GCContentCalculate():
         output_dir (str): Directory for downloading contig assemblies
     """
 
-    def __init__(self, email, api_key, dataframe):
+    def __init__(self, email, api_key, dataframe, species_log_file):
         """
         Initializes the CalculateGCContent class
 
@@ -56,6 +55,7 @@ class GCContentCalculate():
         self.email = email
         self.api_key = api_key
         self.dataframe = dataframe
+        self.species_log_file = species_log_file
 
         if not os.path.exists(OUTPUT_DIRECTORY):
             os.mkdir(OUTPUT_DIRECTORY)
@@ -96,7 +96,6 @@ class GCContentCalculate():
         except Exception:
             # logging NCBI server error 
             error = genbank_id + ' ' + ERROR_MESSAGE_SERVER
-            ERROR_LOG_FILE.write(error)
             assembly_file_path_local = 'NA'
 
         else:
@@ -119,7 +118,6 @@ class GCContentCalculate():
             except Exception:
                 # logging error for mismatching assembly file link
                 error = genbank_id + ' ' + ERROR_MESSAGE_MISMATCH
-                ERROR_LOG_FILE.write(error)
                 assembly_file_path_local = 'NA'
 
         return assembly_file_path_local
@@ -171,7 +169,6 @@ class GCContentCalculate():
             except Exception:
                 # Accounting for zlib file opening errors
                 error = os.path.basename(assembly_file_path_local) + ' ' + ERROR_MESSAGE_ZLIB
-                ERROR_LOG_FILE.write(error)
                 overall_gc_content = float('NaN')
 
         return overall_gc_content
@@ -191,19 +188,31 @@ class GCContentCalculate():
 
         # Iterate through list of Genbank IDs to download assembly file/s and calculate GC content
         gc_content_list = []
+        num_success = 0
+        num_failure = 0
+
         for i in range(0, len(genbank_id_list)):
             assembly_file_path_local = self.download_assembly(genbank_id_list[i])
-            print('{} assembly downloaded.'.format(genbank_id_list[i]), end='')
 
-            # Calculate GC content and append to a list
-            gc_content_list.append(self.calculate_gc_content(assembly_file_path_local))
-            print('gc content calculated. ', end='')
+            if assembly_file_path_local == 'NA':
+                num_failure += 1
 
-            # Remove the downloaded file. This if block of code can be commented out/removed if 
-            # the user wants to retain downloaded contig assemblies
+            else:
+                print('{} assembly downloaded.'.format(genbank_id_list[i]), end='')
 
-            if assembly_file_path_local != 'NA':
-                os.remove(assembly_file_path_local)
-                print('{} assembly file removed'.format(genbank_id_list[i]))
+                # Calculate GC content and append to a list
+                if self.calculate_gc_content(assembly_file_path_local) == float('NaN'):
+                    num_failure += 1
 
-        return gc_content_list
+                else:
+                    gc_content_list.append(self.calculate_gc_content(assembly_file_path_local))
+                    print('gc content calculated. ', end='')
+                    num_success += 1
+
+                    # Remove the downloaded file. This if block of code can be commented out/removed if 
+                    # the user wants to retain downloaded contig assemblies
+
+                    os.remove(assembly_file_path_local)
+                    print('{} assembly file removed'.format(genbank_id_list[i]))
+
+        return gc_content_list, num_success, num_failure
