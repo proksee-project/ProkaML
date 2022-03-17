@@ -74,6 +74,7 @@ UID_SUFFIX = '_UIDs_numbers'
 PROKARYOTES = ['Bacteria', 'Archaea']
 UID_OUTPUT_DIR = 'entrez_id_list'
 ENTREZ_METADATA_DIR = 'entrez_species_metadata'
+REORGANIZED_METADATA_DIR = 'species_reorganized_metadata'
 ADDITIONAL_METADATA_DIR = 'additional_species_metadata'
 
 METADATA_COLUMNS = ['Organism Name', 'Strain/Isolate', 'Assembly Name', 'Genbank Accession',

@@ -10,18 +10,17 @@ log.write('#########################################################\n')
 total_entrez_metadata_success_UIDs = 0
 total_entrez_metadata_failure_UIDs = 0
 
-for sublog_file_list in glob.glob('log_entrez_metadata_chunk*.txt'):
-	sublog_file = open(sublog_file_list)
-	report = sublog_file.read().rstrip().split('\t')
-	total_entrez_metadata_success_UIDs += int(report[1])
-	total_entrez_metadata_failure_UIDs += int(report[2])
+for chunk_log_file in glob.glob('log_entrez_metadata_chunk*.txt'):
+	with open(chunk_log_file) as f:
+		report = f.read().rstrip().split('\t')
+		total_entrez_metadata_success_UIDs += int(report[1])
+		total_entrez_metadata_failure_UIDs += int(report[2])
+		if int(report[2]) > 0:
+			message = const.UID_PREFIX + report[0] + const.FILE_EXTENSION + ' : ' + report[2] + " UID's metadata could not be obtained: \n"
+			log.write(message)
+			log.write(report[3] +'\n')
 
-	if int(report[2]) > 0:
-		message = const.UID_PREFIX + report[0] + const.FILE_EXTENSION + ' : ' + report[2] + " UID's metadata could not be obtained: \n"
-		log.write(message)
-		log.write(report[3] +'\n')
-
-	os.remove(sublog_file)
+	os.remove(chunk_log_file)
 
 success_message = 'Metadata obtained for a total number of ' + str(total_entrez_metadata_success_UIDs) + ' UIDs\n'
 log.write(success_message)

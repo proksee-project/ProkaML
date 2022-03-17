@@ -93,6 +93,7 @@ def log_gc_content(wildcards):
     ck_output = checkpoints.get_species_counts.get(**wildcards).output[0]
     return expand("{j}_log_gc_content.txt", j=glob_wildcards(os.path.join(ck_output,"{j}_metadata.txt")).j)
 
+
 rule log_gc_content:
     conda: 
         "dependencies.yaml"

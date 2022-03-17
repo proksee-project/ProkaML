@@ -21,42 +21,49 @@ snakemake -j 10 --cluster-config cluster.json --cluster "sbatch -p {cluster.part
 where `cluster.json` is a file with parameter specifications for sbatch command. `{cluster.partition}` is currently specified as `dummy_partition` and must be replaced with the actual partition name within the cluster. 
 
 ### Step-wise python scripts
-Step 1: Run `get_species_assemblies.py` . Usage: 
+Step 1: Run `get_assembly_UIDs.py` . Usage: 
 ```
-python get_species_assemblies.py email api_key
-```
-
-Generates counts of species/organism names in `species_assemblycounts_[Month]_[year].txt`  
-
-Step 2: Run `get_taxonomical_kingdom.py` . Usage: 
-```
-python get_taxonomical_kingdom.py email api_key
+python get_assembly_UIDs.py email api_key
 ```
 
-This examines `species_assemblycounts_[Month]_[year].txt` from step 1 and queries every species to obtain its kingdom from the NCBI taxonomy database. Taxonomical kingdom names are appended to generate the file `species_assemblycounts_[Month]_[year]_taxonomy.txt`. 
+Runs API queries on NCBI to obtain assembly unique identifiers (UIDs), which are written in batches of 10,000 to different files bearing format `entrez_id_list/Assembly_UID_chunk*.txt` where `*` is an integer  
 
-Step 3: Run `retrieve_idlist.py`. Usage: 
+Step 2: Run `get_entrez_metadata.py` . Usage: 
 ```
-python retrieve_idlist.py email api_key species_assemblycounts_[Month]_[year]_taxonomy.txt
+python get_entrez_metadata.py email api_key entrez_id_list/Assembly_UID_chunk{i}.txt
+```
+
+For a given file containing assembly UIDs, this script obtains different genomic assembly attributes from NCBI using biopython's esummary function. Assembly attributes are written in tab separated columns for every row UID to the directory `entrez_species_metadata`. Output files will have names in the format of `entrez_species_metadata/Assembly_UID_chunk{i}_metadata.txt`.  
+
+Step 3: Run `log_entrez_metadata.py`. Usage: 
+```
+python log_entrez_metadata.py
 ```  
 
-This examines `species_assemblycounts_[Month]_[year]_taxonomy.txt` Only species belonging to kingdoms Bacteria or Archaea are retained and assembly UIDs for all species are written in species specific separate files to the directory `entrez_id_list`.  
+This examines the metadata files from Step 2 and logs the number of UIDs that were successfully queried to obtain metadata and number of UIDs that failed as well. For every file, a temporary log file of the format `log_entrez_metadata_chunk{i}.txt` is generated and upon generating all log files, aggregates are calculated and the log files are deleted.  
 
-Step 4: Run `get_entrez_metadata.py`. Usage: 
+Step 4: Run `get_species_counts.py`. Usage: 
 ```
-python get_entrez_metadata.py email api_key entrez_id_list/{i}_idlist.txt
+python get_species_counts.py email api_key
 ```
 
-This takes assembly UIDs for a given file for a given species (denoted by `{i}`. As an example, `{i}` could be `Salmonella_enterica_chunk4`) and obtains different genomic assembly attributes for every UID from NCBI. Assembly attributes are written in tab separated columns for every row UID to the directory `entrez_species_metadata`. Output files will have names in the format of `{i}_metadata.txt`.  
+The metadata generated in Step 2 is organized in a species specific manner. For every species, a lowerbound threshold of 10 assemblies is applied for inclusion. Every species is also queried against the NCBI taxonomy database and only those corresponding to prokaryotes (taxonomy kingdom either Bacteria or Archaea) are included. Taxonomy functions written within `get_species_taxonomy.py` are imported to the current script. Output files are written in the format `species_reorganized_metadata/{j}_metadata.txt` where `{j}` corresponds to a species name joined by underscore (e.g. `species_reorganized_metadata/Salmonella_enterica_metadata.txt`)  
 
 Step 5: Run `append_additional_attributes.py`. Usage: 
 ```
-python append_additional_attributes.py email api_key entrez_species_metadata/{i}_metadata.txt
+python append_additional_attributes.py email api_key species_reorganized_metadata/{j}_metadata.txt
 ```
 
-This takes a metadata file from step 4 and for every assembly row, downloads the complete fasta assembly, calculates the overall GC content and appends an additional column for every row. Files are written to the directory `additional_species_metadata` with names formatted to `{i}_metadata_added_attributes.txt`
+This takes a species metadata file from step 4 and for every assembly row, downloads the complete fasta assembly, calculates the overall GC content and appends an additional column for every row. Files are written to the directory `additional_species_metadata` with names formatted to `{j}_added_attributes.txt`  
 
-Step 6: Run `concatenate_metadata.py`. Usage: 
+Step 6: Run `log_gc_content.py`. Usage: 
+```
+python log_gc_content.py
+```  
+
+This examines the metadata files with appended GC content from step 5 and logs the number of assemblies for which GC content was successfully calculated and also the numbers of assemblies that failed. For every file, a temporary log file of the format `{j}_log_gc_content.txt` is generated, where {j} corresponds to a species' name. Upon generating all log files, aggregates are calculated and the log files are deleted.  
+
+Step 7: Run `concatenate_metadata.py`. Usage: 
 ```
 python concatenate_metadata.py
 ```
