@@ -301,10 +301,9 @@ class CleanMetadata():
         EXCLUDE_PATTERNS = ['uncultured', 'metagenome']
         exclude_species_patterns = re.compile(REGEX_JOINING_CHAR.join(EXCLUDE_PATTERNS))
 
-        # List of unexpected special characters in species' names
-        UNEXPECTED_SPECIAL_CHARS = ['\[','\]']
+        # Special characters in species' names that are NOT space, alphanumeric, dot or hyphen
+        UNEXPECTED_SPECIAL_CHARS = re.compile('[^\sa-zA-Z0-9\.-]')
         REPLACED_CHAR = ''
-        unexpected_species_chars = re.compile(REGEX_JOINING_CHAR.join(UNEXPECTED_SPECIAL_CHARS))
 
         # Defining rules for filtering taxonomically valid species
         # Filtering condition 1: remove species with strings matching to EXCLUDE_PATTERNS
@@ -314,8 +313,8 @@ class CleanMetadata():
         filtering_condition2 = self.dataframe[self.SPECIES].str.split(self.SPECIES_SPLIT_CHAR).str.len() == SPECIES_EXPECTED_LENGTH
         self.dataframe = self.dataframe[filtering_condition1 & filtering_condition2]
 
-        # Filtering condition 3: remove unexpected characters in species' names
-        self.dataframe[self.SPECIES] = self.dataframe[self.SPECIES].str.replace(unexpected_species_chars, REPLACED_CHAR, regex=True)
+        # Filtering condition 3: remove unexpected special characters in species' names
+        self.dataframe[self.SPECIES] = self.dataframe[self.SPECIES].str.replace(UNEXPECTED_SPECIAL_CHARS, REPLACED_CHAR, regex=True)
 
     def assign_genus(self):
         GENUS_INDEX = 0

@@ -1,0 +1,7 @@
+# Dummy values for email and api_key are provided for reference purposes only. This combination will not work. 
+# The user should provide their actual email and NCBI API key via command line with "--config" flag extensions to the snakemake command
+# E.g. snakemake [parameters] --config email="dummy@email.com" --config api_key="dummy_api_key_01234"
+# where dummy values should be replaced with user specific actual values.
+
+email: dummy@email.com
+api_key: dummy_api_key_01234

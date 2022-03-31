@@ -24,28 +24,19 @@ from sklearn.ensemble import RandomForestClassifier
 
 class MachineLearningPrediction():
 
-    def __init__(self, dataframe, best_fit_model, training_taxon, testing_taxon):
-        self.dataframe = dataframe
-        self.best_fit_model = best_fit_model
-        self.training_taxon = training_taxon
-        self.testing_taxon = testing_taxon
+    def __init__(self, model_build_dataframe, model_object, model_training_taxon, model_testing_taxon):
+        self.model_build_dataframe = model_build_dataframe
+        self.model_object = model_object
+        self.model_training_taxon = model_training_taxon
+        self.model_testing_taxon = model_testing_taxon
 
-    def apply_model_to_database(self):
-        """
-        Applies best fitting model to entire database
+        self.classifier = MachineLearningClassifier(self.model_build_dataframe, self.model_training_taxon)
+        self.columns_of_interest = self.classifier.select_columns_of_interest(self.model_testing_taxon)
+        self.prediction_column_label = 'train_' + self.model_training_taxon + '_test_' + self.model_testing_taxon + '_prob'
 
-        PARAMETERS
-            best_fit_model (obj.): object of class RandomForestClassifier with highest average cross-validation score
+    def apply_model(self, model_test_dataframe):
 
-        RETURNS
-            self.dataframe (obj.): object of class pandas.DataFrame having a two-dimensional data structure with
-            ~500,000 rows (first row contains headers) and 30 columns of different assembly attributes (str, int, float)
-        """
-
-        classifier = MachineLearningClassifier(self.dataframe, self.training_taxon)
-        columns_of_interest = classifier.select_columns_of_interest(self.testing_taxon)
-        prediction_column_label = 'train_' + self.training_taxon + '_test_' + self.testing_taxon + '_prob'
-        database_dataframe = self.dataframe[columns_of_interest[:-1]]
+        test_feature_space = model_test_dataframe[self.columns_of_interest[:-1]]
 
         # Predicting assembly QC probability and assigning prediction probability column to database
-        self.dataframe[prediction_column_label] = self.best_fit_model.predict_proba(database_dataframe)[:, 0]
+        model_test_dataframe[self.prediction_column_label] = self.model_object.predict_proba(test_feature_space)[:, 0]

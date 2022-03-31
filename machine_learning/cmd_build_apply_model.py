@@ -25,65 +25,70 @@ from apply_models import MachineLearningPrediction
 import joblib
 
 START_DIR = Path(__file__).resolve().parents[1]
-NORMALIZED_DATABASE_FILE = 'well_represented_species_metadata_normalized.txt'
-#MODEL_FILENAME = 'random_forest_n50_contigcount_l50_totlen_gccontent.joblib.gz'
-
-SPECIES_TAXON = 'species'
-GENUS_TAXON = 'genus'
-MODEL_FILENAME_EXTENSION = '_assemblyQC.joblib.gz'
-COMPRESSION_TYPE = 'gzip'
-COMPRESSION_LEVEL = 3
-#PROBABILITY_DATABASE_FILE = 'well_represented_species_metadata_qc_probabilities.txt'
-PROBABILITY_DATABASE_FILE = 'temp_prob.txt'
+#MODEL_TEST_FILE = 'intermediate_species_metadata_conditional_normalized.txt'
+#model_test_dataframe = pd.read_table(os.path.join(START_DIR, MODEL_TEST_FILE), low_memory=False)
+#PROBABILITY_DATABASE_FILE = 'temp2_prob.txt'
 SEPARATOR = '\t'
 
-filepath = str('{}/' + NORMALIZED_DATABASE_FILE).format(str(START_DIR))
-dataframe = pd.read_table(filepath, low_memory=False)
+# Case 1 Train on major+large+intermediate species' attr, test on species' attr
+NORMALIZED_DATABASE_FILE = 'well_represented_species_metadata_normalized.txt'
+DATABASE_SIGNATURE = '_well_represented'
+model_build_dataframe = pd.read_table(os.path.join(START_DIR, NORMALIZED_DATABASE_FILE), low_memory=False)
 
-print('Building random forest model for species normalized attributes')
-classifier_species = MachineLearningClassifier(dataframe, SPECIES_TAXON)
-species_best_fit_model = classifier_species.return_best_model()
-model_filename = str(SPECIES_TAXON) + str(MODEL_FILENAME_EXTENSION)
+print("Building random forest model for species' normalized attributes from major+large+intermediate")
+training_taxon = 'species'
+testing_taxon = 'species'
+classifier_species = MachineLearningClassifier(model_build_dataframe, training_taxon)
+model_object = classifier_species.return_best_model(START_DIR, DATABASE_SIGNATURE)
+print("Predicting on species' normalized attributes")
+prediction_species = MachineLearningPrediction(model_build_dataframe, model_object, training_taxon, testing_taxon)
+#prediction_species.apply_model(model_test_dataframe)
 
-# Exporting best fitting model as a *.joblib python object
-joblib.dump(species_best_fit_model,
-            os.path.join(START_DIR, model_filename),
-            compress=(COMPRESSION_TYPE, COMPRESSION_LEVEL))
+'''
+# Case 2 Train on major+large+intermediate genus' attr, test on genus' attr, consider species present
+NORMALIZED_DATABASE_FILE = 'well_represented_species_metadata_normalized.txt'
+DATABASE_SIGNATURE = '_well_represented'
+model_build_dataframe = pd.read_table(os.path.join(START_DIR, NORMALIZED_DATABASE_FILE), low_memory=False)
 
-print('Building random forest model for genus normalized attributes')
-classifier_genus = MachineLearningClassifier(dataframe, GENUS_TAXON)
-genus_best_fit_model = classifier_genus.return_best_model()
-model_filename = str(GENUS_TAXON) + str(MODEL_FILENAME_EXTENSION)
+print("Building random forest model for genus' normalized attributes from major+large+intermediate")
+training_taxon = 'genus'
+testing_taxon = 'genus'
+classifier_species = MachineLearningClassifier(model_build_dataframe, training_taxon)
+model_object = classifier_species.return_best_model(START_DIR, DATABASE_SIGNATURE)
+print("Predicting on genus' normalized attributes")
+prediction_genus = MachineLearningPrediction(model_build_dataframe, model_object, training_taxon, testing_taxon)
+prediction_genus.apply_model(model_test_dataframe)
 
-# Exporting best fitting model as a *.joblib python object
-joblib.dump(genus_best_fit_model,
-            os.path.join(START_DIR, model_filename),
-            compress=(COMPRESSION_TYPE, COMPRESSION_LEVEL))
 
-print("Predicting species normalized attributes with species' model")
-training_taxon1 = SPECIES_TAXON
-testing_taxon1 = SPECIES_TAXON
-prediction1 = MachineLearningPrediction(dataframe, species_best_fit_model, training_taxon1, testing_taxon1)
-prediction1.apply_model_to_database()
+# Case 3 Train on major+large species' attr, test on intermediate genus' attr, consider species absent
+NORMALIZED_DATABASE_FILE = 'major_large_species_metadata_normalized.txt'
+DATABASE_SIGNATURE = '_major_large'
+model_build_dataframe = pd.read_table(os.path.join(START_DIR, NORMALIZED_DATABASE_FILE), low_memory=False)
 
-print("Predicting genus normalized attributes with species' model")
-training_taxon2 = SPECIES_TAXON
-testing_taxon2 = GENUS_TAXON
-prediction2 = MachineLearningPrediction(dataframe, species_best_fit_model, training_taxon2, testing_taxon2)
-prediction2.apply_model_to_database()
+print("Building random forest model for species' normalized attributes from major+large")
+training_taxon = 'species'
+testing_taxon = 'genus'
+classifier_species = MachineLearningClassifier(model_build_dataframe, training_taxon)
+model_object = classifier_species.return_best_model(START_DIR, DATABASE_SIGNATURE)
+print("Predicting on genus' normalized attributes")
+prediction_genus = MachineLearningPrediction(model_build_dataframe, model_object, training_taxon, testing_taxon)
+prediction_genus.apply_model(model_test_dataframe)
 
-print("Predicting genus normalized attributes with genus' model")
-training_taxon3 = GENUS_TAXON
-testing_taxon3 = GENUS_TAXON
-prediction3 = MachineLearningPrediction(dataframe, genus_best_fit_model, training_taxon3, testing_taxon3)
-prediction3.apply_model_to_database()
 
-print("Predicting species normalized attributes with genus' model")
-training_taxon4 = GENUS_TAXON
-testing_taxon4 = SPECIES_TAXON
-prediction4 = MachineLearningPrediction(dataframe, genus_best_fit_model, training_taxon4, testing_taxon4)
-prediction4.apply_model_to_database()
+# Case 4 Train on major+large genus' attr, test on intermediate genus' attr, consider species absent
+NORMALIZED_DATABASE_FILE = 'major_large_species_metadata_normalized.txt'
+DATABASE_SIGNATURE = '_major_large'
+model_build_dataframe = pd.read_table(os.path.join(START_DIR, NORMALIZED_DATABASE_FILE), low_memory=False)
 
-dataframe.to_csv(os.path.join(START_DIR, PROBABILITY_DATABASE_FILE),
-                              sep=SEPARATOR, mode='w', index=False)
-print('Assembly QC prediction probabilities appended to database')
+print("Building random forest model for genus' normalized attributes from major+large")
+training_taxon = 'genus'
+testing_taxon = 'genus'
+classifier_species = MachineLearningClassifier(model_build_dataframe, training_taxon)
+model_object = classifier_species.return_best_model(START_DIR, DATABASE_SIGNATURE)
+print("Predicting on genus' normalized attributes")
+prediction_genus = MachineLearningPrediction(model_build_dataframe, model_object, training_taxon, testing_taxon)
+prediction_genus.apply_model(model_test_dataframe)
+'''
+
+#model_test_dataframe.to_csv(os.path.join(START_DIR, PROBABILITY_DATABASE_FILE),
+#                              sep=SEPARATOR, mode='w', index=False)
