@@ -1,0 +1,51 @@
+'''
+Copyright:
+
+University of Manitoba & National Microbiology Laboratory, Canada, 2021
+
+Written by: Arnab Saha Mandal
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this work except in compliance with the License. You may obtain a copy of the
+License at:
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+'''
+
+configfile: "config.yaml"
+
+rule target:
+    input:
+        "assembly_metadata_test_prokka_buscolineage_buscostats.txt"
+
+
+rule annotate_prokka:
+    input: 
+        "assembly_metadata_test.txt"
+    output:
+        "assembly_metadata_test_prokka.txt"
+    shell:
+        "python annotate_prokka.py {config[email]} {config[api_key]} {input}"
+
+
+rule obtain_busco_lineage:
+    input:
+        "assembly_metadata_test_prokka.txt"
+    output:
+        "assembly_metadata_test_prokka_buscolineage.txt"
+    shell:
+        "python map_assembly_file.py {input}"
+
+
+rule annotate_busco:
+    input:
+        "assembly_metadata_test_prokka_buscolineage.txt"
+    output:
+        "assembly_metadata_test_prokka_buscolineage_buscostats.txt"
+    shell:
+        "conda activate busco && python annotate_busco.py {input}"
