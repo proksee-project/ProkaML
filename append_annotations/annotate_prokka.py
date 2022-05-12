@@ -101,7 +101,6 @@ def main():
 	for i in range(len(gb_id_list)):
 		assembly_file_path_zipped = gc.download_assembly(gb_id_list[i])
 		assembly_file_path_unzipped = unzip_file(assembly_file_path_zipped)
-
 		genus = get_genus(genus_dict, species_list[i])
 		if genus is not np.nan:
 			prokka_cmd = 'prokka ' + assembly_file_path_unzipped + ' --force --quiet --outdir ' + gb_id_list[i] + ' --genus ' + genus

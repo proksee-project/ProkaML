@@ -20,7 +20,7 @@ specific language governing permissions and limitations under the License.
 import pandas as pd
 import os
 import re
-from busco_lineage import busco_taxonomic_lists
+from get_busco_lineage import busco_taxonomic_lists
 import argparse
 
 

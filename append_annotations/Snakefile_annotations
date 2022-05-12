@@ -21,31 +21,49 @@ configfile: "config.yaml"
 
 rule target:
     input:
-        "assembly_metadata_test_prokka_buscolineage_buscostats.txt"
+        "assembly_annotations_metadata.txt"
+
+
+rule split_files:
+    input:
+        "well_represented_species_metadata.txt"
+    shell:
+        "python split_files.py"
 
 
 rule annotate_prokka:
+    conda: 
+        "env/prokka.yaml"
     input: 
-        "assembly_metadata_test.txt"
+        "assembly_metadata.txt"
     output:
-        "assembly_metadata_test_prokka.txt"
+        "assembly_metadata_prokka.txt"
     shell:
         "python annotate_prokka.py {config[email]} {config[api_key]} {input}"
 
 
 rule obtain_busco_lineage:
     input:
-        "assembly_metadata_test_prokka.txt"
+        "assembly_metadata_prokka.txt"
     output:
-        "assembly_metadata_test_prokka_buscolineage.txt"
+        "assembly_metadata_prokka_buscolineage.txt"
     shell:
         "python map_assembly_file.py {input}"
 
 
 rule annotate_busco:
+    conda:
+        "env/busco.yaml"
     input:
-        "assembly_metadata_test_prokka_buscolineage.txt"
+        "assembly_metadata_prokka_buscolineage.txt"
     output:
-        "assembly_metadata_test_prokka_buscolineage_buscostats.txt"
+        "assembly_metadata_prokka_buscolineage_buscostats.txt"
     shell:
-        "conda activate busco && python annotate_busco.py {input}"
+        "python annotate_busco.py {input}"
+
+
+rule concatenate_metadata:
+    input:
+        "assembly_metadata_prokka_buscolineage_buscostats.txt"
+    output:
+        "assembly_annotations_metadata.txt"

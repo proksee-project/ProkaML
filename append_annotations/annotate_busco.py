@@ -57,7 +57,6 @@ def main():
 
 				else:
 					busco_cmd = 'busco -i ' + assembly_filepath_unzipped + ' -o ' + genbank_id + ' -m genome -l ' + busco_lineage + ' -c 4 -f'
-					print(busco_cmd)
 					with open('busco_' + genbank_id + '_out.txt', 'w+') as busco_out:
 						subprocess.call(busco_cmd, shell=True, stdout=busco_out)
 						busco_out.seek(0)
