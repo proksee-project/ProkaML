@@ -24,34 +24,39 @@ from entrez_metadata import EntrezMetadata
 import constants as const
 import re
 
-my_parser = argparse.ArgumentParser(usage='python %(prog)s [-h] email api_key input_file_path',
-                                    description='Obtains assembly attributes from API queries')
-my_parser.add_argument('email',
-                        type=str,
-                        help='user email address')
-my_parser.add_argument('api_key',
-                        type=str,
-                        help='NCBI user API key')
-my_parser.add_argument('input_file_path',
-                        type=str,
-                        help='path to file containing assembly UIDs')
 
-args = my_parser.parse_args()
+def main():
+    my_parser = argparse.ArgumentParser(usage='python %(prog)s [-h] email api_key input_file_path',
+                                        description='Obtains assembly attributes from API queries')
+    my_parser.add_argument('email',
+                            type=str,
+                            help='user email address')
+    my_parser.add_argument('api_key',
+                            type=str,
+                            help='NCBI user API key')
+    my_parser.add_argument('input_file_path',
+                            type=str,
+                            help='path to file containing assembly UIDs')
 
-input_file_path = args.input_file_path
-pattern = re.search(r'.*chunk(\d+)\.txt', os.path.basename(input_file_path))
-file_number = pattern.group(1)
-log_file = open('log_entrez_metadata_chunk' + file_number + '.txt', 'w')
+    args = my_parser.parse_args()
 
-with open(input_file_path) as f:
-    id_list = f.read().splitlines()
+    input_file_path = args.input_file_path
+    file_count_pattern = re.search(r'.*chunk(\d+)\.txt', os.path.basename(input_file_path))
+    file_number = file_count_pattern.group(1)
+    log_file = open('log_entrez_metadata_chunk' + file_number + '.txt', 'w')
 
-output_filename = os.path.basename(input_file_path).split('.')[0] + const.METADATA_SUFFIX + const.FILE_EXTENSION
-output_file = open(os.path.join(const.ENTREZ_METADATA_DIR, output_filename), const.WRITE_MODE)
+    with open(input_file_path) as f:
+        id_list = f.read().splitlines()
 
-Entrez.email = args.email
-Entrez.api_key = args.api_key
-idlist_metadata = EntrezMetadata(id_list)
-num_success, num_failure, irretrievable_uids = idlist_metadata.print_genomic_metadata(output_file)
-log_file.write('{}\t{}\t{}\t{}\n'.format(file_number, num_success, num_failure, irretrievable_uids))
+    output_filename = os.path.basename(input_file_path).split('.')[0] + const.METADATA_SUFFIX + const.FILE_EXTENSION
+    output_file = open(os.path.join(const.ENTREZ_METADATA_DIR, output_filename), const.WRITE_MODE)
 
+    Entrez.email = args.email
+    Entrez.api_key = args.api_key
+    idlist_metadata = EntrezMetadata(id_list, output_file)
+    num_success_uids, irretrievable_uids = idlist_metadata.obtain_log_metadata()
+    log_file.write('{}\t{}\t{}\n'.format(file_number, num_success_uids, irretrievable_uids))
+
+
+if __name__ == '__main__':
+    main()

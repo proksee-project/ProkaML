@@ -119,7 +119,7 @@ def main():
         if not os.path.exists(const.ENTREZ_METADATA_DIR):
             os.mkdir(const.ENTREZ_METADATA_DIR)
     num_batches = write_assembly_UIDs(num_assemblies)
-    log.write('{} NCBI assembly UIDs written to {} file chunks - format AssemblyUID_chunk*.txt\n'.format(num_assemblies, num_batches))
+    log.write('{} NCBI assembly UIDs written to {} file chunks - format {}/AssemblyUID_chunk*.txt\n'.format(num_assemblies, num_batches, const.UID_OUTPUT_DIR))
     log.close()
 
 

@@ -34,7 +34,7 @@ class EntrezMetadata():
         to genomic attributes (str, float, int)
     """
 
-    def __init__(self, idlist):
+    def __init__(self, idlist, output_file):
         """
         Initializes class for obtaining genomic metadata from NCBI contig assemblies
 
@@ -43,6 +43,7 @@ class EntrezMetadata():
         """
 
         self.idlist = idlist
+        self.output_file = output_file
 
     def get_document_summaries(self, idlist):
 
@@ -60,7 +61,7 @@ class EntrezMetadata():
 
         return document_summaries
 
-    def print_genomic_metadata(self, outfile):
+    def obtain_log_metadata(self):
         """
         Prints/writes assembly metadata to output file
 
@@ -74,7 +75,6 @@ class EntrezMetadata():
 
         document_summaries = self.get_document_summaries(self.idlist)
         idlist_success_count = 0
-        idlist_failures_count = 0
         irretrievable_uids = []
         successful_uids = []
 
@@ -82,30 +82,32 @@ class EntrezMetadata():
             idlist_success_count = len(document_summaries[const.DOCUMENT_SUMMARY_SET][const.DOCUMENT_SUMMARY])
             if idlist_success_count == len(self.idlist):
                 for j in range(0, len(self.idlist)):
-                    document_dict = document_summaries[const.DOCUMENT_SUMMARY_SET][const.DOCUMENT_SUMMARY][j]
-                    metadata_string = const.SEPARATOR.join(self.get_metadata(document_dict))
-                    outfile.write(metadata_string + const.NEW_LINE)
-                    print('Count ' + str(int(j+1)) + ' assembly ' + document_dict['Synonym']['Genbank'] + ' : metadata obtained')
+                    self.print_genomic_metadata(document_summaries, j)
 
             else:
-                idlist_failures_count = len(self.idlist) - len(document_summaries[const.DOCUMENT_SUMMARY_SET][const.DOCUMENT_SUMMARY])
-                for j in range(0, len(document_summaries[const.DOCUMENT_SUMMARY_SET][const.DOCUMENT_SUMMARY])):
-                    retrievable_uid = document_summaries[const.DOCUMENT_SUMMARY_SET][const.DOCUMENT_SUMMARY][j].attributes['uid']
+                for j in range(0, idlist_success_count):
+                    retrievable_uid = self.print_genomic_metadata(document_summaries, j)
                     successful_uids.append(retrievable_uid)
-                    document_dict = document_summaries[const.DOCUMENT_SUMMARY_SET][const.DOCUMENT_SUMMARY][j]
-                    metadata_string = const.SEPARATOR.join(self.get_metadata(document_dict))
-                    outfile.write(metadata_string + const.NEW_LINE)
-                    print('Count ' + str(int(j+1)) + ' assembly ' + document_dict['Synonym']['Genbank'] + ' : metadata obtained')
 
                 for k in range(0, len(self.idlist)):
                     if self.idlist[k] not in successful_uids:
                         irretrievable_uids.append(self.idlist[k])
 
         else:
-            idlist_failures_count = len(self.idlist)
             irretrievable_uids.append(self.idlist)
 
-        return idlist_success_count, idlist_failures_count, irretrievable_uids
+        return idlist_success_count, irretrievable_uids
+
+    def print_genomic_metadata(self, document_summaries, document_summary_index):
+
+        document_dict = document_summaries[const.DOCUMENT_SUMMARY_SET][const.DOCUMENT_SUMMARY][document_summary_index]
+        metadata_string = const.SEPARATOR.join(self.get_metadata(document_dict))
+        self.output_file.write(metadata_string + const.NEW_LINE)
+        print('Count ' + str(int(document_summary_index+1)) + ' assembly ' + document_dict['Synonym']['Genbank'] + \
+            ' : metadata obtained')
+        retrievable_uid = document_dict.attributes[const.ESUMMARY_UID_KEY]
+
+        return retrievable_uid
 
     def get_metadata(self, document_dict):
         """

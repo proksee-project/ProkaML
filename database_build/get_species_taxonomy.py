@@ -37,7 +37,7 @@ class Taxonomy():
         Entrez.email = self.email
         Entrez.api_key = self.api_key
 
-        for attempts in range(1, 4):
+        for attempts in range(const.API_QUERY_ATTEMPT_START, const.API_QUERY_ATTEMPT_END):
             try:
                 handle = Entrez.esearch(db=const.TAXONOMY_DATABASE, term=self.species)
 
@@ -56,7 +56,7 @@ class Taxonomy():
 
         taxonomy_dict = {}
         if record and len(record[const.RECORD_IDLIST]) > 0:
-            for attempts in range(1, 4):        
+            for attempts in range(const.API_QUERY_ATTEMPT_START, const.API_QUERY_ATTEMPT_END):        
                 try:
                     efetch = Entrez.efetch(db=const.TAXONOMY_DATABASE, 
                                         id=record[const.RECORD_IDLIST],

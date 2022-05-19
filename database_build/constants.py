@@ -51,6 +51,7 @@ ESUMMARY_BATCH_LIMIT = 10000
 ESUMMARY_VALIDATE = False
 DOCUMENT_SUMMARY_SET = 'DocumentSummarySet'
 DOCUMENT_SUMMARY = 'DocumentSummary'
+ESUMMARY_UID_KEY = 'uid'
 SPECIES = 'SpeciesName'
 ASSEMBLY_COUNTS_OUTPUT_PREFIX = 'species_assemblycounts_'
 ASSEMBLY_COUNTS_OUTPUT_HEADER = 'Species\tNum_assemblies\n'
