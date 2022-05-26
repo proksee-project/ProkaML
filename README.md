@@ -6,8 +6,7 @@ This document provides an overview of the programs and steps used to accomplish 
 The scripts for generating proksee database comprising genomic attributes of NCBI contig assemblies are in the directories `database_build` and `add_genomic_attributes`. The database can be built using `Snakemake` workflow using a single core or in a cluster environment (for upto 10 jobs in parallel)
 
 Usage: 
-```
-cd database_build   
+``` 
 snakemake --cores 1 --config email="dummy@email.com" --config api_key="dummy_api_key_01234"   
 ```  
 
@@ -69,10 +68,10 @@ python concatenate_metadata.py
 ```
 
 This step concatenates all metadata files to generate four output files.  
-Metadata for species with at least 1000 assemblies each are written to `major_species_metadata_added_attributes.txt`.  
-Metadata for species having at least 100 assemblies each but not exceeding 1000 assemblies are written to `large_species_metadata_added_attributes.txt`.  
-Metadata for species having at least 10 assemblies each but not exceeding 100 assemblies each are written to `intermediate_species_metadata_added_attributes.txt`.  
-All metadata files are concatenated in a resulting file `well_represented_species_metadata_added_attributes.txt` containing assembly metadata for species with at least 10 assemblies. This file is used in subsequent steps of preprocessing, normalizing and generating machine learning models.
+Metadata for species with at least 1000 assemblies each are written to `major_species_metadata.txt`.  
+Metadata for species having at least 100 assemblies each but not exceeding 1000 assemblies are written to `large_species_metadata.txt`.  
+Metadata for species having at least 10 assemblies each but not exceeding 100 assemblies each are written to `intermediate_species_metadata.txt`.  
+All metadata files are concatenated in a resulting file `well_represented_species_metadata.txt` containing assembly metadata for species with at least 10 assemblies. This file is used in subsequent steps of preprocessing, normalizing and generating machine learning models.
 
 
 ## Preprocessing and normalizing  
@@ -80,13 +79,14 @@ The scripts for preprocessing and normalizing assembly metadata are in the direc
 
 Usage: `python cmd_preprocess_normalize.py`  
 
-The script `cmd_preprocess_normalize.py` imports functions from `clean_metadata.py` and `preprocess_metadata.py`. Assembly methods and sequencing technologies accompanied with assembly submissions to NCBI database are highly heterogeneous, with possible groupings of such data further impeded by different version specifications, inconsistencies in spellings and non-uniformity in uppercase/lowercase representations. `clean_metadata.py` organizes the assembly methods and sequencing technologies using regular expressions and subsequently uses the organized metadata information to filter out assemblies associated with long read assemblies. `preprocess_metadata.py` processes assembly metadata for short read assemblies and generates two output files. The first file, `species_median_log_metrics.txt` contains species specific median values (or logarithm of median values) of different assembly attributes (n50, number of contigs, l50, assembly length, genome coverage and gc content). The second file, `well_represented_species_metadata_normalized.txt` serves as an extension to the assembly metadata file from previous step with median normalized assembly attributes calculated for every assembly row and appended as additional columns. The file `well_represented_species_metadata_normalized.txt` also serves as input data for generating machine learning models.  
+The script `cmd_preprocess_normalize.py` imports functions from `calculate_log_median.py`, `clean_metadata.py` and `normalize_species.py`. Assembly methods and sequencing technologies accompanied with assembly submissions to NCBI database are highly heterogeneous, with possible groupings of such data further impeded by different version specifications, inconsistencies in spellings and non-uniformity in uppercase/lowercase representations. `clean_metadata.py` organizes the assembly methods and sequencing technologies using regular expressions and subsequently uses the organized metadata information to filter out assemblies associated with long read assemblies. `calculate_log_median.py` has functions written for median calculations of assembly attributes. The `normalize_species.py` imports functions from `calculate_log_median.py` and normalizes assembly attributes at species specific levels. Overall, the script `cmd_preprocess_normalize.py` generates two output files.  
+The first file, `species_median_log_metrics.txt` contains species specific median values (or logarithm of median values) of different assembly attributes (n50, number of contigs, l50, assembly length, genome coverage and gc content). The second file, `well_represented_species_metadata_normalized.txt` serves as an extension to the assembly metadata file from previous step with median normalized assembly attributes calculated for every assembly row and appended as additional columns. The file `well_represented_species_metadata_normalized.txt` also serves as input data for generating machine learning models.  
 
 ## machine learning classification of assembly quality control (QC)  
 The scripts for machine learning based analysis are in the directory `machine_learning`.  
 
-Usage: `python cmd_machine_learning.py`  
+Usage: `python cmd_build_apply_model.py`  
 
-The script `cmd_machine_learning.py` imports functions from `build_models.py`. `build_models.py` subsets the `well_represented_species_metadata_normalized.txt` database with curated labels depending on inclusion/exclusion of assemblies in NCBI RefSeq database (hereinafter referred to as inclusion/exclusion dataset). Further curation of exclusion dataset is done by removing assemblies obtained from large-scale multi-isolate pathogenic surveillance projects.  
-Species specific normalized attributes corresponding to N50, number of contigs, L50, assembly length and overall GC content are used as training features. Since the number of samples in the inclusion dataset outnumber those in the exclusion dataset, equalized subsamples from inclusion dataset are randomly drawn, for a total of 10 different iterations. A random forests model is trained for each iteration (with parameters set to 100 trees, unlimited depth and automated selection of features for best split). All random forests models are evaluated by 10-fold cross-validation, and the model with highest average score in cross-validations (best fitting model) is output as a compressed joblib python object `random_forest_n50_contigcount_l50_totlen_gccontent.joblib.gz`.  
+The script `cmd_build_apply_model.py` imports functions from `build_models.py` and `apply_models.py`. `build_models.py` subsets the `well_represented_species_metadata_normalized.txt` database with curated labels depending on inclusion/exclusion of assemblies in NCBI RefSeq database (hereinafter referred to as inclusion/exclusion dataset). Further curation of exclusion dataset is done by removing assemblies obtained from large-scale multi-isolate pathogenic surveillance projects.  
+Species specific normalized attributes corresponding to N50, number of contigs, L50, assembly length and overall GC content are used as training features. Since the number of samples in the inclusion dataset outnumber those in the exclusion dataset, equalized subsamples from inclusion dataset are randomly drawn, for a total of 10 different iterations. A random forests model is trained for each iteration (with parameters set to 100 trees, unlimited depth and automated selection of features for best split). All random forests models are evaluated by 10-fold cross-validation, and the model with highest average score in cross-validations (best fitting model) is output as a compressed joblib python object `species_well_represented_assemblyQC.joblib.gz`.  
 The entire database is evaluated by the best fitting model and prediction probabilities output from the model are appended as an additional column to the database `well_represented_species_metadata_qc_probabilities.txt`. Probabilities range between 0 and 1, with 1 being the highest probability of an assembly resembling a RefSeq-included NCBI Reference Sequence.  

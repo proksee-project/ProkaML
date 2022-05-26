@@ -188,12 +188,7 @@ class MachineLearningClassifier():
         COMPRESSION_LEVEL = 3
 
         inclusion_data, exclusion_data = self.curate_labels()
-
         print(inclusion_data.shape[0], exclusion_data.shape[0])
-        #inclusion_data.to_csv('include.txt', sep='\t', index=False)
-        #exclusion_data.to_csv('exclude.txt', sep='\t', index=False)
-
-
         list_models_and_scores = self.generate_models(inclusion_data, exclusion_data)
         MODEL_INDEX = 0
         PERFORMANCE_METRICS_INDEX = 1

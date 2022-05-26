@@ -71,6 +71,8 @@ ORDER = 'order'
 FAMILY = 'family'
 GENUS = 'genus'
 
+
+
 UID_SUFFIX = '_UIDs_numbers'
 PROKARYOTES = ['Bacteria', 'Archaea']
 UID_OUTPUT_DIR = 'entrez_id_list'
@@ -78,7 +80,35 @@ ENTREZ_METADATA_DIR = 'entrez_species_metadata'
 REORGANIZED_METADATA_DIR = 'species_reorganized_metadata'
 ADDITIONAL_METADATA_DIR = 'additional_species_metadata'
 
-METADATA_COLUMNS = ['Organism Name', 'Strain/Isolate', 'Assembly Name', 'Genbank Accession',
-                    'Refseq Accession', 'Genome Coverage', 'Submission Date', 'Last Update Date',
-                    'Refseq Exclusion Reason', 'ContigN50', 'Contig count', 'ContigL50',
-                    'Total length', 'Assembly Method', 'Sequencing Technology']
+METADATA_COLUMN_HEADERS = ['Organism Name', 
+                           'Strain/Isolate', 
+                           'Assembly Name', 
+                           'Genbank Accession',
+                           'Refseq Accession', 
+                           'Genome Coverage',
+                           'Submission Date', 
+                           'Last Update Date',
+                           'Refseq Exclusion Reason', 
+                           'ContigN50', 
+                           'Contig count', 
+                           'ContigL50',
+                           'Total length', 
+                           'Assembly Method', 
+                           'Sequencing Technology'
+                           ]
+
+METADATA_INDEX_SPECIES = 0
+METADATA_INDEX_STRAIN = 1
+METADATA_INDEX_ASSEMBLY_ID = 2
+METADATA_INDEX_GENBANK = 3
+METADATA_INDEX_REFSEQ = 4
+METADATA_INDEX_COVERAGE = 5
+METADATA_INDEX_SUBMISSION = 6
+METADATA_INDEX_LAST_UPDATE = 7
+METADATA_INDEX_REFSEQ_EXCLUSION = 8
+METADATA_INDEX_N50 = 9
+METADATA_INDEX_NUM_CONTIGS = 10
+METADATA_INDEX_L50 = 11
+METADATA_INDEX_LENGTH = 12
+METADATA_INDEX_ASSEMBLER = 13
+METADATA_INDEX_SEQUENCING_TECHNOLOGY = 14

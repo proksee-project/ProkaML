@@ -25,7 +25,7 @@ configfile: "config.yaml"
 
 rule target:
     input:
-        "well_represented_species_metadata.txt"
+        "species_well_represented_assemblyQC.joblib.gz"
 
 
 checkpoint get_assembly_UIDs:
@@ -34,7 +34,7 @@ checkpoint get_assembly_UIDs:
     output:
         directory("entrez_id_list")
     shell:
-        "python get_assembly_UIDs.py {config[email]} {config[api_key]}"
+        "python database_build/get_assembly_UIDs.py {config[email]} {config[api_key]}"
 
 
 rule obtain_entrez_metadata:
@@ -45,7 +45,7 @@ rule obtain_entrez_metadata:
     output:
         "entrez_species_metadata/Assembly_UID_chunk{i}_metadata.txt"
     shell:
-        "python get_entrez_metadata.py {config[email]} {config[api_key]} {input}"
+        "python database_build/get_entrez_metadata.py {config[email]} {config[api_key]} {input}"
 
 
 def log_entrez_metadata_report(wildcards):
@@ -59,7 +59,7 @@ rule log_entrez_metadata:
     input:
         log_entrez_metadata_report
     shell:
-        "python log_entrez_metadata.py"
+        "python database_build/log_entrez_metadata.py"
 
 
 def entrez_metadata_input(wildcards):
@@ -75,7 +75,7 @@ checkpoint get_species_counts:
     output:
         directory("species_reorganized_metadata")
     shell:
-        "python get_species_counts.py {config[email]} {config[api_key]}"
+        "python database_build/get_species_counts.py {config[email]} {config[api_key]}"
 
 
 rule append_additional_attributes:
@@ -86,7 +86,7 @@ rule append_additional_attributes:
     output:
         "additional_species_metadata/{j}_added_attributes.txt"
     shell:
-        "python append_additional_attributes.py {config[email]} {config[api_key]} {input}"
+        "python database_build/append_additional_attributes.py {config[email]} {config[api_key]} {input}"
 
 
 def log_gc_content(wildcards):
@@ -100,7 +100,7 @@ rule log_gc_content:
     input:
         log_gc_content
     shell:
-        "python log_gc_content.py"
+        "python database_build/log_gc_content.py"
 
 
 rule concatenate_metadata:
@@ -111,4 +111,26 @@ rule concatenate_metadata:
     output:
         "well_represented_species_metadata.txt"
     shell:
-        "python concatenate_metadata.py"
+        "python database_build/concatenate_metadata.py"
+
+
+rule preprocess_metadata:
+    conda: 
+        "dependencies.yaml"
+    input:
+        "well_represented_species_metadata.txt"
+    output:
+        "well_represented_species_metadata_normalized.txt"
+    shell:
+        "python preprocessing/cmd_preprocess_normalize.py"
+
+
+rule generate_machine_learning_model:
+    conda: 
+        "dependencies.yaml"
+    input:
+        "well_represented_species_metadata_normalized.txt"
+    output:
+        "species_well_represented_assemblyQC.joblib.gz"
+    shell:
+        "python machine_learning/cmd_build_apply_model.py"

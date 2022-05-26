@@ -34,11 +34,11 @@ def group_metadata():
 
 	for file in filelist:
 		filepath = os.path.join(const.ENTREZ_METADATA_DIR, file)
-		df = pd.read_csv(filepath, sep=const.SEPARATOR, header=None, names=const.METADATA_COLUMNS)
+		df = pd.read_csv(filepath, sep=const.SEPARATOR, header=None, names=const.METADATA_COLUMN_HEADERS)
 		list_dataframes.append(df)
 
 	dataframes_concat = pd.concat(list_dataframes, ignore_index=True)
-	species_dataframe_dict = dict(tuple(dataframes_concat.groupby([const.METADATA_COLUMNS[0]])))
+	species_dataframe_dict = dict(tuple(dataframes_concat.groupby([const.METADATA_COLUMN_HEADERS[const.METADATA_INDEX_SPECIES]])))
 
 	return species_dataframe_dict
 
@@ -72,7 +72,7 @@ def filter_assembly_count_taxonomy(species_corrected, dataframe, excluded_specie
 	else:
 		excluded = dataframe.shape[0]
 		excluded_species.append(species_corrected)
-		excluded_assemblies.append(dataframe[const.METADATA_COLUMNS[3]].to_list())
+		excluded_assemblies.append(dataframe[const.METADATA_COLUMNS[const.METADATA_INDEX_GENBANK]].to_list())
 
 	return included, excluded
 
@@ -93,7 +93,7 @@ def check_prokaryote_taxonomy(species_corrected, taxonomy_output_file, dataframe
 	else:
 		excluded = dataframe.shape[0]
 		excluded_species.append(species_corrected)
-		excluded_assemblies.append(dataframe[const.METADATA_COLUMNS[3]].to_list())
+		excluded_assemblies.append(dataframe[const.METADATA_COLUMNS[const.METADATA_INDEX_GENBANK]].to_list())
 
 	return included, excluded
 
@@ -133,24 +133,12 @@ def main():
 		iterate_species(species_dataframe_dict, taxonomy_output_file, email, api_key, num_assemblies_included, num_assemblies_excluded,
 		excluded_species, excluded_assemblies)
 
-	print(num_assemblies_included)
-	print(num_assemblies_excluded)
-
-	excl_file = open('excl.txt','w')
-	for species in excluded_species:
-		excl_file.write(species + '\n')
-	for assembly_list in excluded_assemblies:
-		for assembly in assembly_list:
-			excl_file.write(assembly + '\n')
-
-	'''
 	log = open(const.LOG_FILE + const.FILE_EXTENSION, mode=const.APPEND_MODE)
 	log.write('\n#########################################################\n')
 	log.write("Reorganizing NCBI metadata, filtering by assembly counts, relevant species' taxonomy\n")
 	log.write('#########################################################\n')
-	log.write('Assemblies included: {}\n'.format(assemblies_included))
-	log.write('Assemblies excluded: {}\n'.format(assemblies_excluded))
-	'''
+	log.write('Assemblies included: {}\n'.format(num_assemblies_included))
+	log.write('Assemblies excluded: {}\n'.format(num_assemblies_excluded))
 
 
 if __name__ == '__main__':
