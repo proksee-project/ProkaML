@@ -6,7 +6,7 @@ This document provides an overview of the programs and steps used to accomplish 
 The scripts for generating proksee database comprising genomic attributes of NCBI contig assemblies are in the directories `database_build` and `add_genomic_attributes`. The database can be built using `Snakemake` workflow using a single core or in a cluster environment (for upto 10 jobs in parallel)
 
 Usage: 
-``` 
+```  
 snakemake --cores 1 --config email="dummy@email.com" --config api_key="dummy_api_key_01234"   
 ```  
 
