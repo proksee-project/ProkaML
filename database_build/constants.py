@@ -71,8 +71,6 @@ ORDER = 'order'
 FAMILY = 'family'
 GENUS = 'genus'
 
-
-
 UID_SUFFIX = '_UIDs_numbers'
 PROKARYOTES = ['Bacteria', 'Archaea']
 UID_OUTPUT_DIR = 'entrez_id_list'

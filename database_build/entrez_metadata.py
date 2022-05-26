@@ -40,6 +40,7 @@ class EntrezMetadata():
 
         PARAMETERS:
             idlist (list): list of NCBI assembly UIDs (int)
+            output_file (str): assembly chunk specific output file
         """
 
         self.idlist = idlist
