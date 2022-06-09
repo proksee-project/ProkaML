@@ -50,8 +50,8 @@ class EntrezMetadata():
 
         for attempts in range(const.API_QUERY_ATTEMPT_START, const.API_QUERY_ATTEMPT_END):
             try:
-                esum = Entrez.esummary(db=const.ASSEMBLY_DATABASE, id=const.ID_LIST_JOIN_CHAR.join(self.idlist))
-                document_summaries = Entrez.read(esum, validate=const.ESUMMARY_VALIDATE)
+                esum = Entrez.esummary(db=const.Assembly.ASSEMBLY_DATABASE, id=const.Assembly.ID_LIST_JOIN_CHAR.join(self.idlist))
+                document_summaries = Entrez.read(esum, validate=const.Assembly.ESUMMARY_VALIDATE)
 
             except Exception:
                 document_summaries = {}
@@ -80,7 +80,7 @@ class EntrezMetadata():
         successful_uids = []
 
         if len(document_summaries) > 0:
-            idlist_success_count = len(document_summaries[const.DOCUMENT_SUMMARY_SET][const.DOCUMENT_SUMMARY])
+            idlist_success_count = len(document_summaries[const.Assembly.DOCUMENT_SUMMARY_SET][const.Assembly.DOCUMENT_SUMMARY])
             if idlist_success_count == len(self.idlist):
                 for j in range(0, len(self.idlist)):
                     self.print_genomic_metadata(document_summaries, j)
@@ -101,12 +101,12 @@ class EntrezMetadata():
 
     def print_genomic_metadata(self, document_summaries, document_summary_index):
 
-        document_dict = document_summaries[const.DOCUMENT_SUMMARY_SET][const.DOCUMENT_SUMMARY][document_summary_index]
-        metadata_string = const.SEPARATOR.join(self.get_metadata(document_dict))
-        self.output_file.write(metadata_string + const.NEW_LINE)
+        document_dict = document_summaries[const.Assembly.DOCUMENT_SUMMARY_SET][const.Assembly.DOCUMENT_SUMMARY][document_summary_index]
+        metadata_string = const.FileFormat.SEPARATOR.join(self.get_metadata(document_dict))
+        self.output_file.write(metadata_string + '\n')
         print('Count ' + str(int(document_summary_index+1)) + ' assembly ' + document_dict['Synonym']['Genbank'] + \
             ' : metadata obtained')
-        retrievable_uid = document_dict.attributes[const.ESUMMARY_UID_KEY]
+        retrievable_uid = document_dict.attributes[const.Assembly.ESUMMARY_UID_KEY]
 
         return retrievable_uid
 

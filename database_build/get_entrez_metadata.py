@@ -43,19 +43,22 @@ def main():
     input_file_path = args.input_file_path
     file_count_pattern = re.search(r'.*chunk(\d+)\.txt', os.path.basename(input_file_path))
     file_number = file_count_pattern.group(1)
-    log_file = open('log_entrez_metadata_chunk' + file_number + '.txt', 'w')
+    log_file =  open(os.path.join(const.FileDirectories.DATABASE_PATH, 'log_entrez_metadata_chunk' + file_number + \
+        const.FileFormat.FILE_EXTENSION), const.FileFormat.WRITE_MODE)
 
     with open(input_file_path) as f:
         id_list = f.read().splitlines()
 
-    output_filename = os.path.basename(input_file_path).split('.')[0] + const.METADATA_SUFFIX + const.FILE_EXTENSION
-    output_file = open(os.path.join(const.ENTREZ_METADATA_DIR, output_filename), const.WRITE_MODE)
+    output_filename = os.path.basename(input_file_path).split('.')[0] + const.Assembly.METADATA_SUFFIX + const.FileFormat.FILE_EXTENSION
+    output_file = open(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.ENTREZ_METADATA_DIR, output_filename), \
+        const.FileFormat.WRITE_MODE)
 
     Entrez.email = args.email
     Entrez.api_key = args.api_key
     idlist_metadata = EntrezMetadata(id_list, output_file)
     num_success_uids, irretrievable_uids = idlist_metadata.obtain_log_metadata()
     log_file.write('{}\t{}\t{}\n'.format(file_number, num_success_uids, irretrievable_uids))
+    log_file.close()
 
 
 if __name__ == '__main__':

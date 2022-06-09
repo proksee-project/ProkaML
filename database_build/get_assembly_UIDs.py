@@ -33,14 +33,14 @@ def count_overall_assemblydb_number(email, api_key, log):
 
     for attempts in range(const.API_QUERY_ATTEMPT_START, const.API_QUERY_ATTEMPT_END):
         try:
-            handle = Entrez.esearch(db=const.ASSEMBLY_DATABASE, term=const.CONTIG_TERM)
+            handle = Entrez.esearch(db=const.Assembly.ASSEMBLY_DATABASE, term=const.Assembly.CONTIG_TERM)
 
         except Exception:
             overall_num_assemblies = 0
 
         else:
             record = Entrez.read(handle)
-            overall_num_assemblies = int(record[const.RECORD_COUNT])
+            overall_num_assemblies = int(record[const.Assembly.RECORD_COUNT])
             break
 
     if overall_num_assemblies == 0:
@@ -56,8 +56,8 @@ def write_assembly_UIDs(overall_num_assemblies):
     if overall_num_assemblies > 0:
         for attempts in range(const.API_QUERY_ATTEMPT_START, const.API_QUERY_ATTEMPT_END):
             try:
-                handle1 = Entrez.esearch(db=const.ASSEMBLY_DATABASE, 
-                                         term=const.CONTIG_TERM, 
+                handle1 = Entrez.esearch(db=const.Assembly.ASSEMBLY_DATABASE, 
+                                         term=const.Assembly.CONTIG_TERM, 
                                          retmax=overall_num_assemblies)
 
             except Exception:
@@ -65,21 +65,21 @@ def write_assembly_UIDs(overall_num_assemblies):
 
             else:
                 record1 = Entrez.read(handle1)
-                num_batches, last_batch_size = divmod(overall_num_assemblies, const.ESUMMARY_BATCH_LIMIT)
+                num_batches, last_batch_size = divmod(overall_num_assemblies, const.Assembly.ESUMMARY_BATCH_LIMIT)
 
                 for batch_instance in range(num_batches + 1):
-                    UID_output_file = open(os.path.join(const.UID_OUTPUT_DIR, const.UID_PREFIX + \
-                        str(int(batch_instance + 1)) + const.FILE_EXTENSION), const.WRITE_MODE)
-                    batch_start = const.ESUMMARY_BATCH_LIMIT * batch_instance
+                    UID_output_file = open(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.UID_OUTPUT_DIR, \
+                        const.Assembly.UID_PREFIX + str(int(batch_instance + 1)) + const.FileFormat.FILE_EXTENSION), const.FileFormat.WRITE_MODE)
+                    batch_start = const.Assembly.ESUMMARY_BATCH_LIMIT * batch_instance
 
                     if batch_instance < num_batches:
-                        batch_end = batch_start + const.ESUMMARY_BATCH_LIMIT
+                        batch_end = batch_start + const.Assembly.ESUMMARY_BATCH_LIMIT
 
                     elif batch_instance == num_batches:
                         batch_end = batch_start + last_batch_size
 
                     for i in range(batch_start, batch_end):
-                        UID_output_file.write(record1[const.RECORD_IDLIST][i] + const.NEW_LINE)
+                        UID_output_file.write(record1[const.Assembly.RECORD_IDLIST][i] + '\n')
 
                 break
 
@@ -107,19 +107,21 @@ def main():
     email = args.email
     api_key = args.api_key
 
-    log = open(const.LOG_FILE + const.FILE_EXTENSION, mode=const.WRITE_MODE)
+    log = open(const.FileFormat.LOG_FILE + const.FileFormat.FILE_EXTENSION, mode=const.FileFormat.WRITE_MODE)
     log.write('#########################################################\n')
     log.write('Getting NCBI assembly UIDs in batches of 10,000\n')
     log.write('#########################################################\n')
 
     num_assemblies = count_overall_assemblydb_number(email, api_key, log)
     if num_assemblies > 0:
-        if not os.path.exists(const.UID_OUTPUT_DIR):
-            os.mkdir(const.UID_OUTPUT_DIR)
-        if not os.path.exists(const.ENTREZ_METADATA_DIR):
-            os.mkdir(const.ENTREZ_METADATA_DIR)
+        if not os.path.exists(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.UID_OUTPUT_DIR)):
+            os.mkdir(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.UID_OUTPUT_DIR))
+        if not os.path.exists(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.ENTREZ_METADATA_DIR)):
+            os.mkdir(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.ENTREZ_METADATA_DIR))
     num_batches = write_assembly_UIDs(num_assemblies)
-    log.write('{} NCBI assembly UIDs written to {} file chunks - format {}/AssemblyUID_chunk*.txt\n'.format(num_assemblies, num_batches, const.UID_OUTPUT_DIR))
+    log.write('{} NCBI assembly UIDs written to {} file chunks - format {}/AssemblyUID_chunk*.txt\n'.\
+        format(num_assemblies, num_batches, os.path.join(os.path.basename(const.FileDirectories.DATABASE_PATH), \
+            const.FileDirectories.UID_OUTPUT_DIR)))
     log.close()
 
 

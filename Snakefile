@@ -32,7 +32,7 @@ checkpoint get_assembly_UIDs:
     conda: 
         "dependencies.yaml"
     output:
-        directory("entrez_id_list")
+        directory("database_build/entrez_id_list")
     shell:
         "python database_build/get_assembly_UIDs.py {config[email]} {config[api_key]}"
 
@@ -41,16 +41,16 @@ rule obtain_entrez_metadata:
     conda: 
         "dependencies.yaml"
     input:
-        "entrez_id_list/Assembly_UID_chunk{i}.txt"
+        "database_build/entrez_id_list/Assembly_UID_chunk{i}.txt"
     output:
-        "entrez_species_metadata/Assembly_UID_chunk{i}_metadata.txt"
+        "database_build/entrez_species_metadata/Assembly_UID_chunk{i}_metadata.txt"
     shell:
         "python database_build/get_entrez_metadata.py {config[email]} {config[api_key]} {input}"
 
 
 def log_entrez_metadata_report(wildcards):
     ck_output = checkpoints.get_assembly_UIDs.get(**wildcards).output[0]
-    return expand("log_entrez_metadata_chunk{i}.txt", i=glob_wildcards(os.path.join(ck_output,"Assembly_UID_chunk{i}.txt")).i)
+    return expand("database_build/log_entrez_metadata_chunk{i}.txt", i=glob_wildcards(os.path.join(ck_output,"Assembly_UID_chunk{i}.txt")).i)
 
 
 rule log_entrez_metadata:
@@ -64,7 +64,7 @@ rule log_entrez_metadata:
 
 def entrez_metadata_input(wildcards):
     ck_output = checkpoints.get_assembly_UIDs.get(**wildcards).output[0]
-    return expand("entrez_species_metadata/Assembly_UID_chunk{i}_metadata.txt", i=glob_wildcards(os.path.join(ck_output,"Assembly_UID_chunk{i}.txt")).i)
+    return expand("database_build/entrez_species_metadata/Assembly_UID_chunk{i}_metadata.txt", i=glob_wildcards(os.path.join(ck_output,"Assembly_UID_chunk{i}.txt")).i)
 
 
 checkpoint get_species_counts:
@@ -73,7 +73,7 @@ checkpoint get_species_counts:
     input:
         entrez_metadata_input
     output:
-        directory("species_reorganized_metadata")
+        directory("database_build/species_reorganized_metadata")
     shell:
         "python database_build/get_species_counts.py {config[email]} {config[api_key]}"
 
@@ -91,7 +91,7 @@ rule append_additional_attributes:
 
 def log_gc_content(wildcards):
     ck_output = checkpoints.get_species_counts.get(**wildcards).output[0]
-    return expand("{j}_log_gc_content.txt", j=glob_wildcards(os.path.join(ck_output,"{j}_metadata.txt")).j)
+    return expand("database_build/{j}_log_gc_content.txt", j=glob_wildcards(os.path.join(ck_output,"{j}_metadata.txt")).j)
 
 
 rule log_gc_content:

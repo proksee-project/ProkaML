@@ -39,7 +39,7 @@ class Taxonomy():
 
         for attempts in range(const.API_QUERY_ATTEMPT_START, const.API_QUERY_ATTEMPT_END):
             try:
-                handle = Entrez.esearch(db=const.TAXONOMY_DATABASE, term=self.species)
+                handle = Entrez.esearch(db=const.Taxonomy.TAXONOMY_DATABASE, term=self.species)
 
             except Exception:
                 record = {}
@@ -55,21 +55,21 @@ class Taxonomy():
     def get_taxonomy_dict(self, record):
 
         taxonomy_dict = {}
-        if record and len(record[const.RECORD_IDLIST]) > 0:
+        if record and len(record[const.Assembly.RECORD_IDLIST]) > 0:
             for attempts in range(const.API_QUERY_ATTEMPT_START, const.API_QUERY_ATTEMPT_END):        
                 try:
-                    efetch = Entrez.efetch(db=const.TAXONOMY_DATABASE, 
-                                        id=record[const.RECORD_IDLIST],
-                                        retmode=const.TAXONOMY_RETMODE)
+                    efetch = Entrez.efetch(db=const.Taxonomy.TAXONOMY_DATABASE, 
+                                        id=record[const.Assembly.RECORD_IDLIST],
+                                        retmode=const.Taxonomy.TAXONOMY_RETMODE)
 
                 except Exception:
                     pass
 
                 else:
                     taxon_summary = Entrez.read(efetch)
-                    for i in range(len(taxon_summary[0][const.LINEAGE])):
-                        taxonomy_dict[taxon_summary[0][const.LINEAGE][i][const.RANK]] = \
-                            taxon_summary[0][const.LINEAGE][i][const.SCIENTIFIC_NAME]
+                    for i in range(len(taxon_summary[0][const.Taxonomy.LINEAGE])):
+                        taxonomy_dict[taxon_summary[0][const.Taxonomy.LINEAGE][i][const.Taxonomy.RANK]] = \
+                            taxon_summary[0][const.Taxonomy.LINEAGE][i][const.Taxonomy.SCIENTIFIC_NAME]
 
                     break
 
@@ -78,66 +78,66 @@ class Taxonomy():
 
     def get_taxonomy_kingdom(self, taxonomy_dict):
 
-        if taxonomy_dict and const.SUPERKINGDOM in taxonomy_dict:
-            kingdom = taxonomy_dict[const.SUPERKINGDOM]
+        if taxonomy_dict and const.Taxonomy.SUPERKINGDOM in taxonomy_dict:
+            kingdom = taxonomy_dict[const.Taxonomy.SUPERKINGDOM]
 
         else:
-            kingdom = const.NA
+            kingdom = const.FileFormat.NA
 
         return kingdom
 
 
     def get_taxonomy_phylum(self, taxonomy_dict):
 
-        if taxonomy_dict and const.PHYLUM in taxonomy_dict:
-            phylum = taxonomy_dict[const.PHYLUM]
+        if taxonomy_dict and const.Taxonomy.PHYLUM in taxonomy_dict:
+            phylum = taxonomy_dict[const.Taxonomy.PHYLUM]
 
         else:
-            phylum = const.NA
+            phylum = const.FileFormat.NA
 
         return phylum
 
 
     def get_taxonomy_class(self, taxonomy_dict):
 
-        if taxonomy_dict and const.CLASS in taxonomy_dict:
-            taxonomy_class = taxonomy_dict[const.CLASS]
+        if taxonomy_dict and const.Taxonomy.CLASS in taxonomy_dict:
+            taxonomy_class = taxonomy_dict[const.Taxonomy.CLASS]
 
         else:
-            taxonomy_class = const.NA
+            taxonomy_class = const.FileFormat.NA
 
         return taxonomy_class
 
 
     def get_taxonomy_order(self, taxonomy_dict):
 
-        if taxonomy_dict and const.ORDER in taxonomy_dict:
-            order = taxonomy_dict[const.ORDER]
+        if taxonomy_dict and const.Taxonomy.ORDER in taxonomy_dict:
+            order = taxonomy_dict[const.Taxonomy.ORDER]
 
         else:
-            order = const.NA
+            order = const.FileFormat.NA
 
         return order
 
 
     def get_taxonomy_family(self, taxonomy_dict):
 
-        if taxonomy_dict and const.FAMILY in taxonomy_dict:
-            family = taxonomy_dict[const.FAMILY]
+        if taxonomy_dict and const.Taxonomy.FAMILY in taxonomy_dict:
+            family = taxonomy_dict[const.Taxonomy.FAMILY]
 
         else:
-            family = const.NA
+            family = const.FileFormat.NA
 
         return family
 
 
     def get_taxonomy_genus(self, taxonomy_dict):
 
-        if taxonomy_dict and const.GENUS in taxonomy_dict:
-            genus = taxonomy_dict[const.GENUS]
+        if taxonomy_dict and const.Taxonomy.GENUS in taxonomy_dict:
+            genus = taxonomy_dict[const.Taxonomy.GENUS]
 
         else:
-            genus = const.NA
+            genus = const.FileFormat.NA
 
         return genus
 
