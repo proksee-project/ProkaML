@@ -20,12 +20,20 @@ specific language governing permissions and limitations under the License.
 import os
 import argparse
 from Bio import Entrez
-from entrez_metadata import EntrezMetadata
+from entrez_metadata import EntrezMetadataDownloader
 import constants as const
 import re
 
 
 def main():
+    """
+    Obtains assembly metadata for a list of assembly UIDs (int)
+
+    POST:
+        Writes assembly metadata to specific output files.
+        Reports assembly UIDs for which metadata was successfully or unsuccessfully downloaded
+    """
+
     my_parser = argparse.ArgumentParser(usage='python %(prog)s [-h] email api_key input_file_path',
                                         description='Obtains assembly attributes from API queries')
     my_parser.add_argument('email',
@@ -43,7 +51,7 @@ def main():
     input_file_path = args.input_file_path
     file_count_pattern = re.search(r'.*chunk(\d+)\.txt', os.path.basename(input_file_path))
     file_number = file_count_pattern.group(1)
-    log_file =  open(os.path.join(const.FileDirectories.DATABASE_PATH, 'log_entrez_metadata_chunk' + file_number + \
+    log_file =  open(os.path.join(const.FileDirectories.DATABASE_PATH, const.LogFiles.LOG_ENTREZ_CHUNK, file_number, \
         const.FileFormat.FILE_EXTENSION), const.FileFormat.WRITE_MODE)
 
     with open(input_file_path) as f:
@@ -55,8 +63,8 @@ def main():
 
     Entrez.email = args.email
     Entrez.api_key = args.api_key
-    idlist_metadata = EntrezMetadata(id_list, output_file)
-    num_success_uids, irretrievable_uids = idlist_metadata.obtain_log_metadata()
+
+    num_success_uids, irretrievable_uids = EntrezMetadataDownloader(id_list, output_file).execute()
     log_file.write('{}\t{}\t{}\n'.format(file_number, num_success_uids, irretrievable_uids))
     log_file.close()
 

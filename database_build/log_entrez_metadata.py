@@ -24,7 +24,11 @@ import re
 
 
 def main():
-	log = open(const.FileFormat.LOG_FILE + const.FileFormat.FILE_EXTENSION, mode=const.FileFormat.APPEND_MODE)
+	"""
+	Compiles reports of assembly UIDs for which metadata was sucessfully or unsuccessfully downloaded
+	"""
+
+	log = open(const.LogFiles.MAIN_LOG + const.FileFormat.TEXT , mode=const.FileFormat.APPEND_MODE)
 	log.write('\n#########################################################\n')
 	log.write('Getting NCBI metadata from Entrez esummary API queries\n')
 	log.write('#########################################################\n')
@@ -34,16 +38,18 @@ def main():
 	failed_UIDs_pattern = re.compile(r'\[(.*)\]')
 	list_failure_logs = []
 
-	for chunk_log_file in glob.glob(os.path.join(const.FileDirectories.DATABASE_PATH,'log_entrez_metadata_chunk*.txt')):
+	for chunk_log_file in glob.glob(os.path.join(const.FileDirectories.DATABASE_PATH, const.LogFiles.SUB_LOG_ENTREZ + '*' + \
+		const.FileFormat.TEXT)):
 		with open(chunk_log_file) as f:
-			report = f.read().rstrip().split('\t')
+			report = f.read().rstrip().split(const.FileFormat.SEPARATOR)
 			total_entrez_metadata_success_UIDs += int(report[1])
 			failed_UIDs = failed_UIDs_pattern.search(report[2])
 			if len(failed_UIDs.group(1)) > 0:
 				num_failed_UIDs = len(failed_UIDs.group(1).split(','))
 				total_entrez_metadata_failure_UIDs += num_failed_UIDs
-				message = const.FileDirectories.UID_OUTPUT_DIR + '/' + const.Assembly.UID_PREFIX + report[0] + const.FileFormat.FILE_EXTENSION + \
-					' : ' + str(num_failed_UIDs) + " UID's metadata could not be obtained: \n" + report[2] + '\n'
+				message = const.FileDirectories.UID_OUTPUT_DIR + '/' + const.Assembly.UID_PREFIX + report[0] + \
+					const.FileFormat.FILE_EXTENSION + ' : ' + str(num_failed_UIDs) + " UID's metadata could not be obtained: \n" \
+					+ report[2] + '\n'
 				list_failure_logs.append(message)
 
 		os.remove(chunk_log_file)
@@ -58,6 +64,7 @@ def main():
 		for failure_log in list_failure_logs:
 			log.write(failure_log)
 	log.close()
+
 
 if __name__ == '__main__':
 	main()

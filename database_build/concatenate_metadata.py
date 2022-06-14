@@ -17,12 +17,14 @@ CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 '''
 
+import constants as const
 import pandas as pd
 from datetime import date
 import glob
 import re
 import os
 import shutil
+
 
 THRESHOLD_MAJOR = 1000
 PREFIX_MAJOR = 'major'
@@ -31,12 +33,10 @@ PREFIX_LARGE = 'large'
 THRESHOLD_INTERMEDIATE = 10
 PREFIX_INTERMEDIATE = 'intermediate'
 
-ADDITIONAL_METADATA_DIRECTORY = 'additional_species_metadata'
 METADATA_FILE_EXTENSION = '_metadata_added_attributes.txt'
 JOIN_CHARACTER = '_'
 SPLIT_CHARACTER = ' '
-SEPARATOR = '\t'
-METADATA_FILE_LIST = os.listdir(ADDITIONAL_METADATA_DIRECTORY)
+METADATA_FILE_LIST = os.listdir(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.ADDITIONAL_METADATA_DIR))
 
 SPECIES = 'Species'
 KINGDOM = 'Kingdom'
@@ -101,14 +101,14 @@ def main():
 		else:
 			for j in categorical_metadata_file_list:
 				try:
-					species_chunk_dataframe = pd.read_csv(j, sep=SEPARATOR, keep_default_na=KEEP_DEFAULT_NA)
+					species_chunk_dataframe = pd.read_csv(j, sep=const.FileFormat.SEPARATOR, keep_default_na=KEEP_DEFAULT_NA)
 					categorical_metadataframe_list.append(species_chunk_dataframe)
 				except FileNotFoundError:
 					pass
 
 			try:
 				categorical_integrated_dataframe = pd.concat(categorical_metadataframe_list)
-				categorical_integrated_dataframe.to_csv(categorical_integrated_metadata_file, sep=SEPARATOR, index=False)
+				categorical_integrated_dataframe.to_csv(categorical_integrated_metadata_file, sep=const.FileFormat.SEPARATOR, index=False)
 			except ValueError:
 				pass
 

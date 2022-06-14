@@ -20,36 +20,36 @@ specific language governing permissions and limitations under the License.
 import os
 import pandas as pd
 from Bio import Entrez
+import constants as const
 import urllib.request
 import urllib.error
 import gzip
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
-OUTPUT_DIRECTORY = 'additional_species_metadata'
 ERROR_MESSAGE_SERVER = 'NCBI server connection error'
 ERROR_MESSAGE_MISMATCH = 'Esummary vs actual assembly link mismatch error'
 ERROR_MESSAGE_ZLIB = 'zlib file opening error'
 
 
-class GCContentCalculate():
+class AssemblyManager():
     """
-    A class representing calculation of overall GC content of an assembly
+    A class representing downloading and calculation of overall GC content of a genomic assembly
 
     ATTRIBUTES
         email (str): User email address
         api_key (str): NCBI API key corresponding to user email address
-        filename (str): A file containing metdata of assemblies (rows) and genomic attributes (columns) from NCBI
-        output_dir (str): Directory for downloading contig assemblies
+        dataframe (obj): An object of class pandas.Dataframe
+        species_log_file (str): Log file for every species cataloging assembly counts
     """
 
     def __init__(self, email, api_key, dataframe, species_log_file):
         """
-        Initializes the CalculateGCContent class
+        Initializes the AssemblyManager class
 
         PARAMETERS
             email (str): User email address
             api_key (str): NCBI API key corresponding to user email address
-            filename (str): A file containing metdata of assemblies (rows) and genomic attributes (columns) from NCBI
-            output_dir (str): Directory for downloading fasta contig assemblies
+            dataframe (obj): An object of class pandas.Dataframe
+            species_log_file (str): Log file for every species cataloging assembly counts
         """
 
         self.email = email
@@ -57,22 +57,19 @@ class GCContentCalculate():
         self.dataframe = dataframe
         self.species_log_file = species_log_file
 
-        if not os.path.exists(OUTPUT_DIRECTORY):
-            os.mkdir(OUTPUT_DIRECTORY)
-
-    def get_genbank_id_list(self):
+    def __get_genbank_id_list(self):
         """
         Reads the metadata file
 
         RETURNS
-            df (dataframe), genbank_id_list (list): tuple of dataframe and list of Genbank accession IDs
+            genbank_id_list (list): list of Genbank accession IDs
         """
-        GENBANK_ID = 'Genbank Accession'
-        genbank_id_list = self.dataframe[GENBANK_ID].to_list()
+
+        genbank_id_list = self.dataframe[const.Metadata.METADATA_COLUMN_HEADERS[const.Metadata.METADATA_INDEX_GENBANK]].to_list()
 
         return genbank_id_list
 
-    def download_assembly(self, genbank_id):
+    def __download_assembly(self, genbank_id):
         """
         Attempts to download genomic assembly using NCBI's API
 
@@ -80,37 +77,29 @@ class GCContentCalculate():
             assembly_file_path_local (str): local path to the downloaded assembly
         """
 
-        # Constants for API queries
-        DATABASE = 'assembly'
-        ID_LIST = 'IdList'
-        DOCUMENT_SUMMARY_SET = 'DocumentSummarySet'
-        DOCUMENT_SUMMARY = 'DocumentSummary'
-        INDEX = 0
-        FTP_PATH_GENBANK = 'FtpPath_GenBank'
-        VALIDATE = False
-        ASSEMBLY_FILE_EXTENSION = '_genomic.fna.gz'
+        ASSEMBLY_INDEX = 0
 
         try:
-            handle = Entrez.esearch(db=DATABASE, term=genbank_id)
+            handle = Entrez.esearch(db=const.Assembly.ASSEMBLY_DATABASE, term=genbank_id)
 
         except Exception:
             # logging NCBI server error 
             error = genbank_id + ' ' + ERROR_MESSAGE_SERVER
-            assembly_file_path_local = 'NA'
+            assembly_file_path_local = const.FileFormat.NA
 
         else:
             record = Entrez.read(handle)
-            handle2 = Entrez.esummary(db=DATABASE, id=record[ID_LIST])
-            record2 = Entrez.read(handle2, validate=VALIDATE)
-            genbank_dir = record2[DOCUMENT_SUMMARY_SET][DOCUMENT_SUMMARY][INDEX][FTP_PATH_GENBANK]
-            assembly_file = os.path.basename(genbank_dir) + ASSEMBLY_FILE_EXTENSION
+            handle2 = Entrez.esummary(db=const.Assembly.ASSEMBLY_DATABASE, id=record[const.Assembly.RECORD_IDLIST])
+            record2 = Entrez.read(handle2, validate=const.Assembly.ESUMMARY_VALIDATE)
+            genbank_dir = record2[const.Assembly.DOCUMENT_SUMMARY_SET][const.Assembly.DOCUMENT_SUMMARY][ASSEMBLY_INDEX][const.Assembly.FTP_PATH_GENBANK]
+            assembly_file = os.path.basename(genbank_dir) + const.Assembly.ASSEMBLY_FILE_EXTENSION
             assembly_file_link = os.path.join(genbank_dir, assembly_file)
 
             # Define path to download the assembly file
-            assembly_file_path_local = os.path.join(OUTPUT_DIRECTORY, assembly_file)
+            assembly_file_path_local = os.path.join(const.FileDirectories.ADDITIONAL_METADATA_DIR, assembly_file)
 
         # Avoid duplicate downloading if assembly file exists
-        if self.need_download(assembly_file_link, assembly_file_path_local):
+        if self.__need_download(assembly_file_link, assembly_file_path_local):
 
             try:
                 urllib.request.urlretrieve(assembly_file_link, assembly_file_path_local)
@@ -118,11 +107,11 @@ class GCContentCalculate():
             except Exception:
                 # logging error for mismatching assembly file link
                 error = genbank_id + ' ' + ERROR_MESSAGE_MISMATCH
-                assembly_file_path_local = 'NA'
+                assembly_file_path_local = const.FileFormat.NA
 
         return assembly_file_path_local
 
-    def need_download(self, url_link, assembly_file_path_local):
+    def __need_download(self, url_link, assembly_file_path_local):
         """
         Checks for presence or absence of assembly file
 
@@ -141,7 +130,7 @@ class GCContentCalculate():
         else:
             return False
 
-    def calculate_gc_content(self, assembly_file_path_local):
+    def __calculate_gc_content(self, assembly_file_path_local):
         """
         Calculates GC content of an assembly as a fraction of the total assembly length
 
@@ -184,7 +173,7 @@ class GCContentCalculate():
         Entrez.email = self.email
         Entrez.api_key = self.api_key
 
-        genbank_id_list = self.get_genbank_id_list()
+        genbank_id_list = self.__get_genbank_id_list()
 
         # Iterate through list of Genbank IDs to download assembly file/s and calculate GC content
         gc_content_list = []
@@ -192,7 +181,7 @@ class GCContentCalculate():
         num_failure = 0
 
         for i in range(0, len(genbank_id_list)):
-            assembly_file_path_local = self.download_assembly(genbank_id_list[i])
+            assembly_file_path_local = self.__download_assembly(genbank_id_list[i])
 
             if assembly_file_path_local == 'NA':
                 num_failure += 1
@@ -201,11 +190,11 @@ class GCContentCalculate():
                 print('{} assembly downloaded.'.format(genbank_id_list[i]), end='')
 
                 # Calculate GC content and append to a list
-                if self.calculate_gc_content(assembly_file_path_local) == float('NaN'):
+                if self.__calculate_gc_content(assembly_file_path_local) == float('NaN'):
                     num_failure += 1
 
                 else:
-                    gc_content_list.append(self.calculate_gc_content(assembly_file_path_local))
+                    gc_content_list.append(self.__calculate_gc_content(assembly_file_path_local))
                     print('gc content calculated. ', end='')
                     num_success += 1
 

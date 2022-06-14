@@ -21,7 +21,6 @@ import os
 import pandas as pd
 from pathlib import Path
 from clean_metadata import CleanMetadata
-from calculate_log_median import MedianNormalization
 from normalize_species import SpeciesNormalization
 
 
@@ -36,8 +35,7 @@ def main():
     NORMALIZED_DATABASE_FILE = 'well_represented_species_metadata_normalized.txt'
 
     starting_dataframe = pd.read_csv(os.path.join(START_DIR, ATTRIBUTE_DATABASE_FILE), low_memory=LOW_MEMORY, sep=SEPARATOR)
-    organize_dataframe = CleanMetadata(starting_dataframe)
-    cleaned_dataframe = organize_dataframe.clean_metadata()
+    cleaned_dataframe = CleanMetadata(starting_dataframe).execute()
     print('Pre-normalization step complete.')
     print('.....Assembly methods and sequencing technologies are curated.')
     print('.....Long read assemblies are excluded.')
@@ -46,7 +44,7 @@ def main():
     species_normalization = SpeciesNormalization(cleaned_dataframe)
     with open(os.path.join(START_DIR, MEDIAN_DATABASE_FILE), 'w') as median_db_write:
         median_db_write.write('Species\tlogn50\tlogcontigcount\tlogl50\tlogtotlen\tlogcoverage\tgccontent\n')
-        species_normalized_dataframe = species_normalization.apply_species_normalization(median_db_write)
+        species_normalized_dataframe = species_normalization.execute(median_db_write)
 
     print("Database of species specific median attributes are written to {}.".format(MEDIAN_DATABASE_FILE))
     print("Species' normalized attributes are calculated.")

@@ -32,7 +32,7 @@ class Taxonomy():
         self.email = email
         self.api_key = api_key
 
-    def get_taxonomy_record(self):
+    def __get_taxonomy_record(self):
 
         Entrez.email = self.email
         Entrez.api_key = self.api_key
@@ -52,7 +52,7 @@ class Taxonomy():
         return record
 
 
-    def get_taxonomy_dict(self, record):
+    def __get_taxonomy_dict(self, record):
 
         taxonomy_dict = {}
         if record and len(record[const.Assembly.RECORD_IDLIST]) > 0:
@@ -76,7 +76,7 @@ class Taxonomy():
         return taxonomy_dict
 
 
-    def get_taxonomy_kingdom(self, taxonomy_dict):
+    def __get_taxonomy_kingdom(self, taxonomy_dict):
 
         if taxonomy_dict and const.Taxonomy.SUPERKINGDOM in taxonomy_dict:
             kingdom = taxonomy_dict[const.Taxonomy.SUPERKINGDOM]
@@ -87,7 +87,7 @@ class Taxonomy():
         return kingdom
 
 
-    def get_taxonomy_phylum(self, taxonomy_dict):
+    def __get_taxonomy_phylum(self, taxonomy_dict):
 
         if taxonomy_dict and const.Taxonomy.PHYLUM in taxonomy_dict:
             phylum = taxonomy_dict[const.Taxonomy.PHYLUM]
@@ -98,7 +98,7 @@ class Taxonomy():
         return phylum
 
 
-    def get_taxonomy_class(self, taxonomy_dict):
+    def __get_taxonomy_class(self, taxonomy_dict):
 
         if taxonomy_dict and const.Taxonomy.CLASS in taxonomy_dict:
             taxonomy_class = taxonomy_dict[const.Taxonomy.CLASS]
@@ -109,7 +109,7 @@ class Taxonomy():
         return taxonomy_class
 
 
-    def get_taxonomy_order(self, taxonomy_dict):
+    def __get_taxonomy_order(self, taxonomy_dict):
 
         if taxonomy_dict and const.Taxonomy.ORDER in taxonomy_dict:
             order = taxonomy_dict[const.Taxonomy.ORDER]
@@ -120,7 +120,7 @@ class Taxonomy():
         return order
 
 
-    def get_taxonomy_family(self, taxonomy_dict):
+    def __get_taxonomy_family(self, taxonomy_dict):
 
         if taxonomy_dict and const.Taxonomy.FAMILY in taxonomy_dict:
             family = taxonomy_dict[const.Taxonomy.FAMILY]
@@ -131,7 +131,7 @@ class Taxonomy():
         return family
 
 
-    def get_taxonomy_genus(self, taxonomy_dict):
+    def __get_taxonomy_genus(self, taxonomy_dict):
 
         if taxonomy_dict and const.Taxonomy.GENUS in taxonomy_dict:
             genus = taxonomy_dict[const.Taxonomy.GENUS]
@@ -142,14 +142,14 @@ class Taxonomy():
         return genus
 
 
-    def get_full_taxonomy(self):
-        taxonomy_record = self.get_taxonomy_record()
-        taxonomy_dict = self.get_taxonomy_dict(taxonomy_record)
-        kingdom = self.get_taxonomy_kingdom(taxonomy_dict)
-        phylum = self.get_taxonomy_phylum(taxonomy_dict)
-        taxonomy_class = self.get_taxonomy_class(taxonomy_dict)
-        order = self.get_taxonomy_order(taxonomy_dict)
-        family = self.get_taxonomy_family(taxonomy_dict)
-        genus = self.get_taxonomy_genus(taxonomy_dict)
+    def fetch(self):
+        taxonomy_record = self.__get_taxonomy_record()
+        taxonomy_dict = self.__get_taxonomy_dict(taxonomy_record)
+        kingdom = self.__get_taxonomy_kingdom(taxonomy_dict)
+        phylum = self.__get_taxonomy_phylum(taxonomy_dict)
+        taxonomy_class = self.__get_taxonomy_class(taxonomy_dict)
+        order = self.__get_taxonomy_order(taxonomy_dict)
+        family = self.__get_taxonomy_family(taxonomy_dict)
+        genus = self.__get_taxonomy_genus(taxonomy_dict)
 
         return [kingdom, phylum, taxonomy_class, order, family, genus]

@@ -62,7 +62,7 @@ class SpeciesNormalization():
         self.dataframe = dataframe
         self.median_normalization = MedianNormalization()
 
-    def group_species(self):
+    def __group_species(self):
         """
         Subsets species with valid taxonomical groups
 
@@ -76,7 +76,7 @@ class SpeciesNormalization():
 
         return species_dataframe_list
 
-    def write_median_values(self, dataframe, median_database_file):
+    def __write_median_values(self, dataframe, median_database_file):
         """
         Writes species specific median values of assembly attributes
 
@@ -99,7 +99,7 @@ class SpeciesNormalization():
         median_database_file.write('{}\t'.format(self.median_normalization.get_median_log_coverage(dataframe)))
         median_database_file.write('{}\n'.format(self.median_normalization.get_median_gc_content(dataframe)))
 
-    def normalize_dataframe(self, dataframe):
+    def __normalize_dataframe(self, dataframe):
         """
         Calculates and appends species specific normalized assembly attributes
 
@@ -128,7 +128,7 @@ class SpeciesNormalization():
 
         return dataframe
 
-    def apply_species_normalization(self, median_database_file):
+    def execute(self, median_database_file):
         """
         Appends normalized attributes to entire database of assembly attributes
 
@@ -138,11 +138,11 @@ class SpeciesNormalization():
 
         species_aggregated_normalized_dataframe = []
 
-        species_dataframe_list = self.group_species()
+        species_dataframe_list = self.__group_species()
         for species_dataframe in species_dataframe_list:
             logarithm_appended_dataframe = self.median_normalization.append_logarithm_imputations(species_dataframe)
-            self.write_median_values(logarithm_appended_dataframe, median_database_file)
-            species_normalized_dataframe = self.normalize_dataframe(logarithm_appended_dataframe)
+            self.__write_median_values(logarithm_appended_dataframe, median_database_file)
+            species_normalized_dataframe = self.__normalize_dataframe(logarithm_appended_dataframe)
             species_aggregated_normalized_dataframe.append(species_normalized_dataframe)
 
         species_aggregated_normalized_dataframe_concatenated = pd.concat(species_aggregated_normalized_dataframe)

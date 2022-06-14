@@ -22,15 +22,13 @@ import os
 
 Entrez.max_tries = 1
 Entrez.sleep_between_tries = 1
-
-
 API_QUERY_ATTEMPT_START = 1
 API_QUERY_ATTEMPT_END = 4
 
+
 class FileFormat():
     DATE_FORMAT = '%b_%Y'
-    LOG_FILE = 'LOG'
-    FILE_EXTENSION = '.txt'
+    TEXT = '.txt'
     WRITE_MODE = 'w'
     APPEND_MODE = 'a'
     SEPARATOR = '\t'
@@ -43,7 +41,13 @@ class FileDirectories():
     UID_OUTPUT_DIR = 'entrez_id_list'
     ENTREZ_METADATA_DIR = 'entrez_species_metadata'
     REORGANIZED_METADATA_DIR = 'species_reorganized_metadata'
-    ADDITIONAL_METADATA_DIR = 'additional_species_metadata'
+    ADDITIONAL_METADATA_DIR = 'species_reorganized_metadata_gc'
+
+
+class LogFiles():
+    MAIN_LOG = 'LOG'
+    SUB_LOG_ENTREZ = 'log_entrez_metadata_chunk'
+    SUB_LOG_GC = '_log_gc'
 
 
 class Assembly():
@@ -59,6 +63,8 @@ class Assembly():
     DOCUMENT_SUMMARY = 'DocumentSummary'
     ESUMMARY_UID_KEY = 'uid'
     SPECIES = 'SpeciesName'
+    FTP_PATH_GENBANK = 'FtpPath_GenBank'
+    ASSEMBLY_FILE_EXTENSION = '_genomic.fna.gz'
     ASSEMBLY_COUNTS_OUTPUT_PREFIX = 'species_assemblycounts_'
     ASSEMBLY_COUNT_LOWERBOUND = 10
     UID_PREFIX = 'Assembly_UID_chunk'
@@ -69,6 +75,7 @@ class Assembly():
     UID_SUFFIX = '_UIDs_numbers'
     EXCLUDED_SPECIES = 'excluded_species'
     EXCLUDED_ASSEMBLIES = 'excluded_assemblies'
+    GC_SUFFIX = '_gc'
 
 
 class Taxonomy():
@@ -112,6 +119,7 @@ class Metadata():
                             'Total length', 
                             'Assembly Method', 
                             'Sequencing Technology'
+                            'GCcontent'
                             ]
 
     METADATA_INDEX_SPECIES = 0
@@ -129,3 +137,4 @@ class Metadata():
     METADATA_INDEX_LENGTH = 12
     METADATA_INDEX_ASSEMBLER = 13
     METADATA_INDEX_SEQUENCING_TECHNOLOGY = 14
+    METADATA_INDEX_GC_CONTENT = 15

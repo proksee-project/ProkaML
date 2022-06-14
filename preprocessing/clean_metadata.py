@@ -44,7 +44,7 @@ class CleanMetadata():
 
         self.dataframe = dataframe
 
-    def organize_assembly_method(self):
+    def __organize_assembly_method(self):
         """
         Re-writes similar assembly methods to a uniform assembly method name. For example: 'Spaded', 'SPAdes v 2.5',
         'SPAdes v 3.0', 'SPAdes assembler v 3.1.1', 'spades v 13.3' are all re-written to 'SPAdes'. A similar strategy
@@ -216,7 +216,7 @@ class CleanMetadata():
         self.dataframe = self.dataframe.replace({self.ASSEMBLY_METHOD: r'^VAAL.*$'},
                                                 {self.ASSEMBLY_METHOD: 'NA'}, regex=True)
 
-    def organize_sequencing_technology(self):
+    def __organize_sequencing_technology(self):
         """
         Re-writes similar sequencing technologies to a uniform sequencing technology name. For example: 'Illunina', 'Ilumina',
         'Illumina NovaSeq', 'Illumina NextSeq', 'ILLUMINA' are all re-written to 'Illumina'. A similar strategy
@@ -265,7 +265,7 @@ class CleanMetadata():
         self.dataframe = self.dataframe.replace({self.SEQ_PLATFORM: r'.*Others.*$'},
                                                 {self.SEQ_PLATFORM: 'NA'}, regex=True)
 
-    def identify_long_reads(self):
+    def __identify_long_reads(self):
         """
         Identifies assemblies associated with long reads
 
@@ -285,7 +285,7 @@ class CleanMetadata():
 
         return long_read_index
 
-    def select_taxonomically_valid_species(self):
+    def __exclude_non_specific_species(self):
         """
         Subsets species with valid taxonomical groups
 
@@ -309,13 +309,7 @@ class CleanMetadata():
         filtering_condition2 = self.dataframe[self.SPECIES].str.split(self.SPECIES_SPLIT_CHAR).str.len() == SPECIES_EXPECTED_LENGTH
         self.dataframe = self.dataframe[filtering_condition1 & filtering_condition2]
 
-
-    def assign_genus(self):
-        GENUS_INDEX = 0
-        self.dataframe = self.dataframe.assign(Genus=
-                                               self.dataframe[self.SPECIES].str.split(self.SPECIES_SPLIT_CHAR).str[GENUS_INDEX])
-
-    def clean_metadata(self):
+    def execute(self):
         """
         Performs text cleaning by string replacement of assembly method and sequencing platform. 
         Excludes assembly rows associated with long reads.
@@ -325,11 +319,10 @@ class CleanMetadata():
             ~500,000 rows (first row contains headers) and 16 columns of different assembly attributes (str, int, float)
         """
 
-        self.organize_assembly_method()
-        self.organize_sequencing_technology()
-        long_read_index = self.identify_long_reads()
+        self.__organize_assembly_method()
+        self.__organize_sequencing_technology()
+        long_read_index = self.__identify_long_reads()
         self.dataframe.drop(long_read_index, inplace=True)
-        self.select_taxonomically_valid_species()
-        self.assign_genus()
+        self.__exclude_non_specific_species()
 
         return self.dataframe

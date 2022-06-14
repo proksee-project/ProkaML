@@ -107,7 +107,7 @@ def main():
     email = args.email
     api_key = args.api_key
 
-    log = open(const.FileFormat.LOG_FILE + const.FileFormat.FILE_EXTENSION, mode=const.FileFormat.WRITE_MODE)
+    log = open(const.LogFiles.MAIN_LOG + const.FileFormat.TEXT , mode=const.FileFormat.WRITE_MODE)
     log.write('#########################################################\n')
     log.write('Getting NCBI assembly UIDs in batches of 10,000\n')
     log.write('#########################################################\n')

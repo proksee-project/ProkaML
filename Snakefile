@@ -78,20 +78,20 @@ checkpoint get_species_counts:
         "python database_build/get_species_counts.py {config[email]} {config[api_key]}"
 
 
-rule append_additional_attributes:
+rule append_gc_content:
     conda: 
         "dependencies.yaml"
     input:
-        "species_reorganized_metadata/{j}_metadata.txt"
+        "database_build/species_reorganized_metadata/{j}_metadata.txt"
     output:
-        "additional_species_metadata/{j}_added_attributes.txt"
+        "database_build/species_reorganized_metadata_gc/{j}_metadata_gc.txt"
     shell:
-        "python database_build/append_additional_attributes.py {config[email]} {config[api_key]} {input}"
+        "python database_build/append_gc_content.py {config[email]} {config[api_key]} {input}"
 
 
 def log_gc_content(wildcards):
     ck_output = checkpoints.get_species_counts.get(**wildcards).output[0]
-    return expand("database_build/{j}_log_gc_content.txt", j=glob_wildcards(os.path.join(ck_output,"{j}_metadata.txt")).j)
+    return expand("database_build/{j}_log_gc.txt", j=glob_wildcards(os.path.join(ck_output,"{j}_metadata.txt")).j)
 
 
 rule log_gc_content:
