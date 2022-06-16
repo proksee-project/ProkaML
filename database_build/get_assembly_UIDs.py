@@ -26,6 +26,21 @@ import re
 import os
 
 
+def create_directory(directory):
+	"""
+	Creates directories
+
+	PARAMETERS:
+		directory (str): the directory to be created
+	
+	POST:
+		creates a directory if it doesn't exist
+	"""
+
+	if not os.path.exists(os.path.join(const.FileDirectories.DATABASE_PATH, directory)):
+		os.mkdir(os.path.join(const.FileDirectories.DATABASE_PATH, directory))
+
+
 def count_overall_assemblydb_number(email, api_key, log):
 
     Entrez.email = email
@@ -69,7 +84,7 @@ def write_assembly_UIDs(overall_num_assemblies):
 
                 for batch_instance in range(num_batches + 1):
                     UID_output_file = open(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.UID_OUTPUT_DIR, \
-                        const.Assembly.UID_PREFIX + str(int(batch_instance + 1)) + const.FileFormat.FILE_EXTENSION), const.FileFormat.WRITE_MODE)
+                        const.Assembly.UID_PREFIX + str(int(batch_instance + 1)) + const.FileFormat.TEXT), const.FileFormat.WRITE_MODE)
                     batch_start = const.Assembly.ESUMMARY_BATCH_LIMIT * batch_instance
 
                     if batch_instance < num_batches:
@@ -114,10 +129,9 @@ def main():
 
     num_assemblies = count_overall_assemblydb_number(email, api_key, log)
     if num_assemblies > 0:
-        if not os.path.exists(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.UID_OUTPUT_DIR)):
-            os.mkdir(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.UID_OUTPUT_DIR))
-        if not os.path.exists(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.ENTREZ_METADATA_DIR)):
-            os.mkdir(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.ENTREZ_METADATA_DIR))
+        create_directory(const.FileDirectories.UID_OUTPUT_DIR)
+        create_directory(const.FileDirectories.ENTREZ_METADATA_DIR)
+        create_directory(const.FileDirectories.ENTREZ_LOG_DIR)
     num_batches = write_assembly_UIDs(num_assemblies)
     log.write('{} NCBI assembly UIDs written to {} file chunks - format {}/AssemblyUID_chunk*.txt\n'.\
         format(num_assemblies, num_batches, os.path.join(os.path.basename(const.FileDirectories.DATABASE_PATH), \

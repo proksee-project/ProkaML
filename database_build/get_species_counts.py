@@ -26,6 +26,7 @@ import re
 from get_species_taxonomy import Taxonomy
 import argparse
 from datetime import date
+from get_assembly_UIDs import create_directory
 
 
 def group_metadata():
@@ -39,14 +40,14 @@ def group_metadata():
 
 	list_dataframes = []
 
-	for file in os.listdir(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.ENTREZ_METADATA_DIR)):
-		filepath = os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.ENTREZ_METADATA_DIR, file)
+	for file_ in os.listdir(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.ENTREZ_METADATA_DIR)):
+		filepath = os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.ENTREZ_METADATA_DIR, file_)
 		df = pd.read_csv(filepath, sep=const.FileFormat.SEPARATOR, header=None, \
-			names=const.Metadata.METADATA_COLUMN_HEADERS)
+			names=const.Metadata.METADATA_COLUMN_HEADERS[:-1])
 		list_dataframes.append(df)
 
 	dataframes_concatenated = pd.concat(list_dataframes, ignore_index=True)
-	species_dataframe_dict = dict(tuple(dataframes_concatenated.groupby([const.Metadata.METADATA_COLUMN_HEADERS\
+	species_dataframe_dict = dict(tuple(dataframes_concatenated.groupby([const.Metadata.METADATA_COLUMN_HEADERS
 		[const.Metadata.METADATA_INDEX_SPECIES]])))
 
 	return species_dataframe_dict
@@ -91,7 +92,7 @@ def check_assembly_counts(dataframe):
 		dataframe (obj): species specific 2 dimensional dataframe with rows of assemblies and columns of genomic attributes
 	
 	RETURNS:
-		(bool) whether number of assemblies are greater than a lowerbound threshold 
+		bool : whether number of assemblies are greater than a lowerbound threshold or not
 	"""
 
 	if dataframe.shape[0] >= const.Assembly.ASSEMBLY_COUNT_LOWERBOUND:
@@ -111,9 +112,9 @@ def is_kingdom_prokaryote(species_corrected, dataframe, taxonomy_output_file):
 		taxonomy_output_file (str): file to which full taxonomy lineage for species are written
 	
 	RETURNS:
-		(bool) whether species is a prokaryote
+		bool : whether species is a prokaryote or not
 	"""
-	
+
 	my_parser = argparse.ArgumentParser(usage='python %(prog)s [-h] email api_key',
 										description='Gets full taxonomical lineage for species')
 	my_parser.add_argument('email', type=str, help='user email address')
@@ -145,8 +146,8 @@ def write_species_taxonomy(species_corrected, dataframe, taxonomy_lineage, taxon
 		Writes species taxonomy lineage upon True evaluation of prokaryote
 	"""
 
-	taxonomy_output_file.write(const.FileFormat.SEPARATOR.join([species_corrected, str(dataframe.shape[0]), \
-		*taxonomy_lineage]) + '\n')
+	taxonomy_output_file.write(const.FileFormat.SEPARATOR.join([species_corrected, str(dataframe.shape[0]),
+	    *taxonomy_lineage]) + '\n')
 
 
 def write_assembly_metadata(species_corrected, dataframe):
@@ -156,14 +157,14 @@ def write_assembly_metadata(species_corrected, dataframe):
 	PARAMTERS:
 		species_corrected (str): species corrected for special characters
 		dataframe (obj): species specific 2 dimensional dataframe with rows of assemblies and columns of genomic attributes
-	
+
 	POST:
 		Writes species' assembly metadata
 	"""
 
 	species_metadata_file = '_'.join(species_corrected.split(' ')) + const.Assembly.METADATA_SUFFIX + \
 		const.FileFormat.TEXT
-	dataframe.to_csv(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.REORGANIZED_METADATA_DIR, \
+	dataframe.to_csv(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.SPECIES_METADATA_DIR,
 		species_metadata_file), sep=const.FileFormat.SEPARATOR, index=False)
 
 
@@ -199,7 +200,8 @@ def write_excluded_metata(excluded_species, excluded_metadata_files):
 
 	num_excluded_species = 0
 	num_excluded_assemblies = 0
-	with open(os.path.join(const.FileDirectories.DATABASE_PATH, excluded_metadata_files[0]), const.FileFormat.WRITE_MODE) as exclude:
+	with open(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.TEMP_DIR, excluded_metadata_files[0]), 
+	    const.FileFormat.WRITE_MODE) as exclude:
 		exclude.write(const.Assembly.COL_SPECIES + const.FileFormat.SEPARATOR + const.Assembly.COL_NUM_ASSEMBLIES + '\n')
 		for i in range(0, len(excluded_species), 2):
 			exclude.write(excluded_species[i] + const.FileFormat.SEPARATOR + str(excluded_species[i + 1].shape[0]) + '\n')
@@ -209,8 +211,8 @@ def write_excluded_metata(excluded_species, excluded_metadata_files):
 			else:
 				mode = const.FileFormat.APPEND_MODE
 				header = False
-			excluded_species[i + 1].to_csv( os.path.join(const.FileDirectories.DATABASE_PATH, excluded_metadata_files[1]), mode=mode, \
-				header=header, sep=const.FileFormat.SEPARATOR, index=False)
+			excluded_species[i + 1].to_csv(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.TEMP_DIR,
+			    excluded_metadata_files[1]), mode=mode, header=header, sep=const.FileFormat.SEPARATOR, index=False)
 			num_excluded_species += 1
 			num_excluded_assemblies += excluded_species[i + 1].shape[0]
 
@@ -222,18 +224,18 @@ def main():
 	Groups assembly metadata by species, examines assembly counts and taxonomy, generates report
 	"""
 
-	if not os.path.exists(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.REORGANIZED_METADATA_DIR)):
-		os.mkdir(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.REORGANIZED_METADATA_DIR))
-	if not os.path.exists(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.ADDITIONAL_METADATA_DIR)):
-		os.mkdir(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.ADDITIONAL_METADATA_DIR))
+	create_directory(const.FileDirectories.SPECIES_METADATA_DIR)
+	create_directory(const.FileDirectories.GC_METADATA_DIR)
+	create_directory(const.FileDirectories.ASSEMBLY_DOWNLOAD_DIR)
+	create_directory(const.FileDirectories.SPECIES_GC_LOG_DIR)
 
 	species_dataframe_dict = group_metadata()
 	taxonomy_output_file = generate_taxonomy_file()
 	special_characters = re.compile('[^\sa-zA-Z0-9\.-]')
 
-	num_species_written, num_assemblies_written, excluded_species = perform_species_examination(special_characters,\
+	num_species_written, num_assemblies_written, excluded_species = perform_species_examination(special_characters,
 		species_dataframe_dict, taxonomy_output_file)
-	excluded_metadata_files = [const.Assembly.EXCLUDED_SPECIES + const.FileFormat.TEXT, \
+	excluded_metadata_files = [const.Assembly.EXCLUDED_SPECIES + const.FileFormat.TEXT, 
 		const.Assembly.EXCLUDED_ASSEMBLIES + const.Assembly.METADATA_SUFFIX + const.FileFormat.TEXT]
 
 	num_excluded_species, num_excluded_assemblies = write_excluded_metata(excluded_species, excluded_metadata_files)
@@ -242,13 +244,14 @@ def main():
 	log.write('\n#########################################################\n')
 	log.write('Reorganizing NCBI metadata by species, filtering by assembly counts and prokaryote taxonomy\n')
 	log.write('#########################################################\n')
-	log.write('Total {} assembly metadata for {} species written in species-specific files in format {}/'.format(\
-		num_assemblies_written, num_species_written, os.path.join(os.path.basename(const.FileDirectories.DATABASE_PATH), \
-		const.FileDirectories.REORGANIZED_METADATA_DIR)) + '[species]' + const.Assembly.METADATA_SUFFIX + const.FileFormat.TEXT + '\n')
-	log.write('Total {} assembly metadata for {} species excluded from further analysis.\n'.format(num_excluded_assemblies,\
-		num_excluded_species) + 'Excluded species with assembly counts written to {}\n'.format(os.path.join(os.path.basename(\
-		const.FileDirectories.DATABASE_PATH), excluded_metadata_files[0])) + 'Excluded assembly metadata written to {}\n'.format(\
-		os.path.join(os.path.basename(const.FileDirectories.DATABASE_PATH), excluded_metadata_files[1])))
+	log.write('Total {} assembly metadata for {} species written in species-specific files in format {}/'.format(
+		num_assemblies_written, num_species_written, os.path.join(os.path.basename(const.FileDirectories.DATABASE_PATH), 
+		const.FileDirectories.SPECIES_METADATA_DIR)) + '[species]' + const.Assembly.METADATA_SUFFIX + const.FileFormat.TEXT + '\n')
+	log.write('Total {} assembly metadata for {} species excluded from further analysis.\n'.format(num_excluded_assemblies,
+		num_excluded_species) + 'Excluded species with assembly counts written to {}\n'.format(os.path.join(os.path.basename(
+		const.FileDirectories.DATABASE_PATH), const.FileDirectories.TEMP_DIR, excluded_metadata_files[0])) + 'Excluded assembly \
+		metadata written to {}\n'.format(os.path.join(os.path.basename(const.FileDirectories.DATABASE_PATH), const.FileDirectories.TEMP_DIR,
+		excluded_metadata_files[1])))
 	log.close()
 
 

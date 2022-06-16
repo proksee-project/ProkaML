@@ -32,7 +32,7 @@ checkpoint get_assembly_UIDs:
     conda: 
         "dependencies.yaml"
     output:
-        directory("database_build/entrez_id_list")
+        directory("database_build/temporary_outputs/entrez_id_list")
     shell:
         "python database_build/get_assembly_UIDs.py {config[email]} {config[api_key]}"
 
@@ -41,16 +41,17 @@ rule obtain_entrez_metadata:
     conda: 
         "dependencies.yaml"
     input:
-        "database_build/entrez_id_list/Assembly_UID_chunk{i}.txt"
+        "database_build/temporary_outputs/entrez_id_list/Assembly_UID_chunk{i}.txt"
     output:
-        "database_build/entrez_species_metadata/Assembly_UID_chunk{i}_metadata.txt"
+        "database_build/temporary_outputs/entrez_species_metadata/Assembly_UID_chunk{i}_metadata.txt"
     shell:
         "python database_build/get_entrez_metadata.py {config[email]} {config[api_key]} {input}"
 
 
 def log_entrez_metadata_report(wildcards):
     ck_output = checkpoints.get_assembly_UIDs.get(**wildcards).output[0]
-    return expand("database_build/log_entrez_metadata_chunk{i}.txt", i=glob_wildcards(os.path.join(ck_output,"Assembly_UID_chunk{i}.txt")).i)
+    return expand("database_build/temporary_outputs/log_entrez_metadata_chunk{i}.txt", 
+        i=glob_wildcards(os.path.join(ck_output,"Assembly_UID_chunk{i}.txt")).i)
 
 
 rule log_entrez_metadata:
@@ -64,7 +65,8 @@ rule log_entrez_metadata:
 
 def entrez_metadata_input(wildcards):
     ck_output = checkpoints.get_assembly_UIDs.get(**wildcards).output[0]
-    return expand("database_build/entrez_species_metadata/Assembly_UID_chunk{i}_metadata.txt", i=glob_wildcards(os.path.join(ck_output,"Assembly_UID_chunk{i}.txt")).i)
+    return expand("database_build/temporary_outputs/entrez_species_metadata/Assembly_UID_chunk{i}_metadata.txt",
+        i=glob_wildcards(os.path.join(ck_output,"Assembly_UID_chunk{i}.txt")).i)
 
 
 checkpoint get_species_counts:
@@ -73,7 +75,7 @@ checkpoint get_species_counts:
     input:
         entrez_metadata_input
     output:
-        directory("database_build/species_reorganized_metadata")
+        directory("database_build/temporary_outputs/species_reorganized_metadata")
     shell:
         "python database_build/get_species_counts.py {config[email]} {config[api_key]}"
 
@@ -82,9 +84,9 @@ rule append_gc_content:
     conda: 
         "dependencies.yaml"
     input:
-        "database_build/species_reorganized_metadata/{j}_metadata.txt"
+        "database_build/temporary_outputs/species_reorganized_metadata/{j}_metadata.txt"
     output:
-        "database_build/species_reorganized_metadata_gc/{j}_metadata_gc.txt"
+        "database_build/temporary_outputs/species_reorganized_metadata_gc/{j}_metadata_gc.txt"
     shell:
         "python database_build/append_gc_content.py {config[email]} {config[api_key]} {input}"
 

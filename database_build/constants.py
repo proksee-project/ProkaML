@@ -38,10 +38,14 @@ class FileFormat():
 
 class FileDirectories():
     DATABASE_PATH = os.path.dirname(__file__)
-    UID_OUTPUT_DIR = 'entrez_id_list'
-    ENTREZ_METADATA_DIR = 'entrez_species_metadata'
-    REORGANIZED_METADATA_DIR = 'species_reorganized_metadata'
-    ADDITIONAL_METADATA_DIR = 'species_reorganized_metadata_gc'
+    TEMP_DIR = 'temporary_outputs'
+    UID_OUTPUT_DIR = 'temporary_outputs/entrez_id_list'
+    ENTREZ_METADATA_DIR = 'temporary_outputs/entrez_species_metadata'
+    ENTREZ_LOG_DIR = 'temporary_outputs/entrez_log'
+    SPECIES_METADATA_DIR = 'temporary_outputs/species_reorganized_metadata'
+    GC_METADATA_DIR = 'temporary_outputs/species_reorganized_metadata_gc'
+    ASSEMBLY_DOWNLOAD_DIR = 'temporary_outputs/assembly_downloads'
+    SPECIES_GC_LOG_DIR = 'temporary_outputs/species_gc_log'
 
 
 class LogFiles():
@@ -118,7 +122,7 @@ class Metadata():
                             'ContigL50',
                             'Total length', 
                             'Assembly Method', 
-                            'Sequencing Technology'
+                            'Sequencing Technology',
                             'GCcontent'
                             ]
 
@@ -138,3 +142,4 @@ class Metadata():
     METADATA_INDEX_ASSEMBLER = 13
     METADATA_INDEX_SEQUENCING_TECHNOLOGY = 14
     METADATA_INDEX_GC_CONTENT = 15
+

@@ -26,6 +26,10 @@ from manage_assembly import AssemblyManager
 
 
 def main():
+    """
+    Appends column of GC content of assembly
+    """
+
     filename_split_pattern = const.Assembly.METADATA_SUFFIX + const.FileFormat.TEXT
     FILENAME_ID_INDEX = 0
     LOW_MEMORY = False
@@ -53,15 +57,15 @@ def main():
     input_file = os.path.basename(input_file_path)
     species_name = input_file.split(filename_split_pattern)[FILENAME_ID_INDEX]
     output_file = input_file.split(filename_split_pattern)[FILENAME_ID_INDEX] + const.Assembly.GC_SUFFIX + const.FileFormat.TEXT
-    output_file_path = os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.ADDITIONAL_METADATA_DIR, output_file)
-    species_log_file = open(os.path.join(const.FileDirectories.DATABASE_PATH, (species_name + const.LogFiles.SUB_LOG_GC + \
-        const.FileFormat.TEXT)), const.FileFormat.WRITE_MODE)
+    output_file_path = os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.GC_METADATA_DIR, output_file)
+    species_log_file = open(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.SPECIES_GC_LOG_DIR,
+        (species_name + const.LogFiles.SUB_LOG_GC + const.FileFormat.TEXT)), const.FileFormat.WRITE_MODE)
 
     dataframe = pd.read_csv(input_file_path, sep=const.FileFormat.SEPARATOR, keep_default_na=KEEP_DEFAULT_NA, low_memory=LOW_MEMORY)
-    dataframe[const.Metadata.METADATA_COLUMN_HEADERS[const.Metadata.METADATA_INDEX_GC_CONTENT]], num_success, num_failure = \
-        AssemblyManager(email, api_key, dataframe, species_log_file).append_gc_content()
+    dataframe[const.Metadata.METADATA_COLUMN_HEADERS[const.Metadata.METADATA_INDEX_GC_CONTENT]], num_success, fail_server, \
+        fail_mismatch, fail_zlib = AssemblyManager(email, api_key, dataframe, species_log_file).append_gc_content()
     dataframe.to_csv(output_file_path, sep=const.FileFormat.SEPARATOR , mode=const.FileFormat.WRITE_MODE, index=KEEP_INDEX)
-    species_log_file.write('{}\t{}\n'.format(num_success, num_failure))
+    species_log_file.write('{}\t{}\t{}\t{}\n'.format(num_success, fail_server, fail_mismatch, fail_zlib))
 
 
 if __name__ == '__main__':

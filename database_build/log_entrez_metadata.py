@@ -38,8 +38,8 @@ def main():
 	failed_UIDs_pattern = re.compile(r'\[(.*)\]')
 	list_failure_logs = []
 
-	for chunk_log_file in glob.glob(os.path.join(const.FileDirectories.DATABASE_PATH, const.LogFiles.SUB_LOG_ENTREZ + '*' + \
-		const.FileFormat.TEXT)):
+	for chunk_log_file in glob.glob(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.ENTREZ_LOG_DIR,
+	    const.LogFiles.SUB_LOG_ENTREZ + '*' + const.FileFormat.TEXT)):
 		with open(chunk_log_file) as f:
 			report = f.read().rstrip().split(const.FileFormat.SEPARATOR)
 			total_entrez_metadata_success_UIDs += int(report[1])

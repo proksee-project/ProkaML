@@ -51,13 +51,13 @@ def main():
     input_file_path = args.input_file_path
     file_count_pattern = re.search(r'.*chunk(\d+)\.txt', os.path.basename(input_file_path))
     file_number = file_count_pattern.group(1)
-    log_file =  open(os.path.join(const.FileDirectories.DATABASE_PATH, const.LogFiles.LOG_ENTREZ_CHUNK, file_number, \
-        const.FileFormat.FILE_EXTENSION), const.FileFormat.WRITE_MODE)
+    log_file =  open(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.ENTREZ_LOG_DIR, \
+        const.LogFiles.SUB_LOG_ENTREZ + file_number + const.FileFormat.TEXT), const.FileFormat.WRITE_MODE)
 
     with open(input_file_path) as f:
         id_list = f.read().splitlines()
 
-    output_filename = os.path.basename(input_file_path).split('.')[0] + const.Assembly.METADATA_SUFFIX + const.FileFormat.FILE_EXTENSION
+    output_filename = os.path.basename(input_file_path).split('.')[0] + const.Assembly.METADATA_SUFFIX + const.FileFormat.TEXT
     output_file = open(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.ENTREZ_METADATA_DIR, output_filename), \
         const.FileFormat.WRITE_MODE)
 
