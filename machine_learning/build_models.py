@@ -66,7 +66,7 @@ class MachineLearningClassifier():
                                           max_features = self.FEATURE_SELECTION_CRITERION,
                                           random_state = self.RANDOM_SEED)
 
-    def select_columns_of_interest(self, input_taxon):
+    def __select_columns_of_interest(self, input_taxon):
 
         logn50_normalized = 'logn50_normalized_' + str(input_taxon) 
         logcontigcount_normalized = 'logcontigcount_normalized_' + str(input_taxon)
@@ -82,7 +82,7 @@ class MachineLearningClassifier():
 
         return columns_of_interest
 
-    def curate_labels(self):
+    def __curate_labels(self):
         """
         Curates labels based on assembly inclusion or exclusion in NCBI RefSeq database
 
@@ -107,13 +107,13 @@ class MachineLearningClassifier():
         RefSeq_excluded_multi_isolate = RefSeq_excluded_multi_isolate.assign(label=exclusion_label)
 
         # Creating dataframes of inclusion and exclusion datasets with columns of interest
-        columns_of_interest = self.select_columns_of_interest(self.training_taxon)
+        columns_of_interest = self.__select_columns_of_interest(self.training_taxon)
         inclusion_data = RefSeq_included_data[columns_of_interest]
         exclusion_data = RefSeq_excluded_multi_isolate[columns_of_interest]
 
         return inclusion_data, exclusion_data
 
-    def generate_models(self, inclusion_data, exclusion_data):
+    def __generate_models(self, inclusion_data, exclusion_data):
         """
         Generates random forests models and calculates cross-validation scores
 
@@ -136,8 +136,8 @@ class MachineLearningClassifier():
             integrated_data = pd.concat([inclusion_data_balanced, exclusion_data], ignore_index=True)
 
             # Defining feature space and label vector
-            feature_space = integrated_data.drop(self.select_columns_of_interest(self.training_taxon)[-1], axis=1)
-            label_vector = integrated_data[self.select_columns_of_interest(self.training_taxon)[-1]]
+            feature_space = integrated_data.drop(self.__select_columns_of_interest(self.training_taxon)[-1], axis=1)
+            label_vector = integrated_data[self.__select_columns_of_interest(self.training_taxon)[-1]]
 
             # Fitting random forests model to the training data
             self.rfc.fit(feature_space, label_vector)
@@ -150,14 +150,14 @@ class MachineLearningClassifier():
                                                                        cv=self.N_FOLD_CV,
                                                                        n_jobs=self.NUM_PARALLEL_JOBS)
             conf_mat = confusion_matrix(label_vector, random_forest_cross_validation_predict)
-            performance_metrics = self.get_performance_metrics(conf_mat)
+            performance_metrics = self.__get_performance_metrics(conf_mat)
             print('{}\t{}\t{}'.format(*performance_metrics))
 
             list_models_and_scores.append([self.rfc, performance_metrics])
 
         return list_models_and_scores
 
-    def get_performance_metrics(self, confusion_matrix):
+    def __get_performance_metrics(self, confusion_matrix):
 
         PERCENT_MULTIPLIER = 100
         true_positive = int(confusion_matrix[0, 0])
@@ -187,9 +187,9 @@ class MachineLearningClassifier():
         COMPRESSION_TYPE = 'gzip'
         COMPRESSION_LEVEL = 3
 
-        inclusion_data, exclusion_data = self.curate_labels()
+        inclusion_data, exclusion_data = self.__curate_labels()
         print(inclusion_data.shape[0], exclusion_data.shape[0])
-        list_models_and_scores = self.generate_models(inclusion_data, exclusion_data)
+        list_models_and_scores = self.__generate_models(inclusion_data, exclusion_data)
         MODEL_INDEX = 0
         PERFORMANCE_METRICS_INDEX = 1
         AVERAGE_SCORE_INDEX = 3
