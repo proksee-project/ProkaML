@@ -7,14 +7,14 @@ The scripts for generating proksee database comprising genomic attributes of NCB
 
 Usage: 
 ```  
-snakemake --cores 1 --config email="dummy@email.com" --config api_key="dummy_api_key_01234"   
+snakemake --use-conda --cores 1 --config email="dummy@email.com" api_key="dummy_api_key_01234"   
 ```  
 
 where dummy email and API key entries should be replaced with user specific actual values. 
 For running snakemake in a cluster environment, replace the second line of the former command with:  
 
 ```  
-snakemake -j 10 --cluster-config cluster.json --cluster "sbatch -p {cluster.partition} -t {cluster.time} -o {cluster.output} -e {cluster.error}" --config email="dummy@email.com" --config api_key="dummy_api_key_01234"
+snakemake --use-conda -j 10 --cluster-config cluster.json --cluster "sbatch -p {cluster.partition} -t {cluster.time} -o {cluster.output} -e {cluster.error}" --config email="dummy@email.com" api_key="dummy_api_key_01234"
 ```  
 
 where `cluster.json` is a file with parameter specifications for sbatch command. `{cluster.partition}` is currently specified as `dummy_partition` and must be replaced with the actual partition name within the cluster. 
