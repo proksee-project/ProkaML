@@ -8,7 +8,7 @@ In summary, the snakemake file `Snakefile` chains together individual python scr
 Troubleshooting:  
 Snakemake workflow in cluster requires a user to maintain active connection. If this is not a possibility, `sbatch` must be appended at the beginning of the command:  
 
-`sbatch snakemake -j 10 --cluster-config cluster.json --cluster "sbatch -p {cluster.partition} -t {cluster.time}-o {cluster.output} -e {cluster.error}" --config email=="dummy@email.com" --config api_key="dummy_api_key_01234"`  
+`sbatch snakemake --use-conda -j 10 --cluster-config cluster.json --cluster "sbatch -p {cluster.partition} -t {cluster.time}-o {cluster.output} -e {cluster.error}" --config email=="dummy@email.com" api_key="dummy_api_key_01234"`  
 
 `sbatch` at the beginning ensures that the main snakemake workflow is always running, while `sbatch` at the middle lets snakemake parallelize the workflow. 
 
