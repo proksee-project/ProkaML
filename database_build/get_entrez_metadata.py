@@ -20,38 +20,54 @@ specific language governing permissions and limitations under the License.
 import os
 import argparse
 from Bio import Entrez
-from entrez_metadata import EntrezMetadata
+from entrez_metadata import EntrezMetadataDownloader
 import constants as const
 import re
 
-my_parser = argparse.ArgumentParser(usage='python %(prog)s [-h] email api_key input_file_path',
-                                    description='Obtains assembly attributes from API queries')
-my_parser.add_argument('email',
-                        type=str,
-                        help='user email address')
-my_parser.add_argument('api_key',
-                        type=str,
-                        help='NCBI user API key')
-my_parser.add_argument('input_file_path',
-                        type=str,
-                        help='path to file containing assembly UIDs')
 
-args = my_parser.parse_args()
+def main():
+    """
+    Obtains assembly metadata for a list of assembly UIDs (int)
 
-input_file_path = args.input_file_path
-pattern = re.search(r'.*chunk(\d+)\.txt', os.path.basename(input_file_path))
-file_number = pattern.group(1)
-log_file = open('log_entrez_metadata_chunk' + file_number + '.txt', 'w')
+    POST:
+        Writes assembly metadata to specific output files.
+        Reports assembly UIDs for which metadata was successfully or unsuccessfully downloaded
+    """
 
-with open(input_file_path) as f:
-    id_list = f.read().splitlines()
+    my_parser = argparse.ArgumentParser(usage='python %(prog)s [-h] email api_key input_file_path',
+                                        description='Obtains assembly attributes from API queries')
+    my_parser.add_argument('email',
+                            type=str,
+                            help='user email address')
+    my_parser.add_argument('api_key',
+                            type=str,
+                            help='NCBI user API key')
+    my_parser.add_argument('input_file_path',
+                            type=str,
+                            help='path to file containing assembly UIDs')
 
-output_filename = os.path.basename(input_file_path).split('.')[0] + const.METADATA_SUFFIX + const.FILE_EXTENSION
-output_file = open(os.path.join(const.ENTREZ_METADATA_DIR, output_filename), const.WRITE_MODE)
+    args = my_parser.parse_args()
 
-Entrez.email = args.email
-Entrez.api_key = args.api_key
-idlist_metadata = EntrezMetadata(id_list)
-num_success, num_failure, irretrievable_uids = idlist_metadata.print_genomic_metadata(output_file)
-log_file.write('{}\t{}\t{}\t{}\n'.format(file_number, num_success, num_failure, irretrievable_uids))
+    input_file_path = args.input_file_path
+    file_count_pattern = re.search(r'.*chunk(\d+)\.txt', os.path.basename(input_file_path))
+    file_number = file_count_pattern.group(1)
+    log_file =  open(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.ENTREZ_LOG_DIR, \
+        const.LogFiles.SUB_LOG_ENTREZ + file_number + const.FileFormat.TEXT), const.FileFormat.WRITE_MODE)
 
+    with open(input_file_path) as f:
+        id_list = f.read().splitlines()
+
+    output_filename = os.path.basename(input_file_path).split('.')[0] + const.Assembly.METADATA_SUFFIX + const.FileFormat.TEXT
+    output_file = open(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.ENTREZ_METADATA_DIR, output_filename), \
+        const.FileFormat.WRITE_MODE)
+
+    Entrez.email = args.email
+    Entrez.api_key = args.api_key
+
+    num_success_uids, irretrievable_uids = EntrezMetadataDownloader(id_list, output_file).execute()
+    log_file.write('{}\t{}\t{}\n'.format(file_number, num_success_uids, irretrievable_uids))
+    log_file.close()
+
+
+if __name__ == '__main__':
+    main()

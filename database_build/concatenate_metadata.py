@@ -17,12 +17,14 @@ CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 '''
 
+import constants as const
 import pandas as pd
 from datetime import date
 import glob
 import re
 import os
 import shutil
+import constants as const
 
 THRESHOLD_MAJOR = 1000
 PREFIX_MAJOR = 'major'
@@ -31,12 +33,10 @@ PREFIX_LARGE = 'large'
 THRESHOLD_INTERMEDIATE = 10
 PREFIX_INTERMEDIATE = 'intermediate'
 
-ADDITIONAL_METADATA_DIRECTORY = 'additional_species_metadata'
 METADATA_FILE_EXTENSION = '_metadata_added_attributes.txt'
 JOIN_CHARACTER = '_'
 SPLIT_CHARACTER = ' '
-SEPARATOR = '\t'
-METADATA_FILE_LIST = os.listdir(ADDITIONAL_METADATA_DIRECTORY)
+METADATA_FILE_LIST = os.listdir(os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.GC_METADATA_DIR))
 
 SPECIES = 'Species'
 KINGDOM = 'Kingdom'
@@ -48,7 +48,6 @@ INTEGRATED_METADATA_FILE = 'well_represented_species_metadata.txt'
 
 
 def threshold_metadata(dataframe):
-	dataframe = dataframe[dataframe[KINGDOM].str.contains(r'Archaea|Bacteria', na=KEEP_DEFAULT_NA)]
 	df_major = dataframe[dataframe[NUM_ASSEMBLIES] >= THRESHOLD_MAJOR]
 	df_large = dataframe[(dataframe[NUM_ASSEMBLIES] >= THRESHOLD_LARGE) & (dataframe[NUM_ASSEMBLIES] < THRESHOLD_MAJOR)]
 	df_intermediate = dataframe[(dataframe[NUM_ASSEMBLIES] >= THRESHOLD_INTERMEDIATE) & (dataframe[NUM_ASSEMBLIES] < THRESHOLD_LARGE)]
@@ -57,8 +56,8 @@ def threshold_metadata(dataframe):
 	return categorical_list_dataframes
 
 def get_metadata_file(species):
-	species_file = JOIN_CHARACTER.join(species.split(SPLIT_CHARACTER)) + METADATA_FILE_EXTENSION
-	species_file_path = os.path.join(ADDITIONAL_METADATA_DIRECTORY, species_file)
+	species_file = JOIN_CHARACTER.join(species.split(SPLIT_CHARACTER)) + const.Assembly.GC_SUFFIX + const.FileFormat.TEXT
+	species_file_path = os.path.join(const.FileDirectories.DATABASE_PATH, const.FileDirectories.GC_METADATA_DIR, species_file)
 
 	return species_file_path
 
@@ -76,7 +75,7 @@ def merge_series_list(metadata_file_series):
 
 def main():
 	month_year_stamp = date.today().strftime("%b_%Y")
-	assembly_count_dataframe = pd.read_csv('species_assemblycounts_' + month_year_stamp + '_taxonomy.txt', sep='\t')
+	assembly_count_dataframe = pd.read_csv((const.Taxonomy.TAXONOMY_FILE_PREFIX + month_year_stamp + const.Taxonomy.TAXONOMY_FILE_SUFFIX + const.FileFormat.TEXT), sep='\t')
 	categorical_list_dataframes = threshold_metadata(assembly_count_dataframe)
 	all_species_integrated_dataframe_list = []
 	
@@ -91,7 +90,7 @@ def main():
 		categorical_integrated_metadata_file = category + '_species_metadata.txt'
 
 		df = categorical_list_dataframes[i]
-		df[METADATA_FILE] = df.apply(lambda row: get_metadata_file(row[SPECIES]), axis=1)
+		df[METADATA_FILES] = df.apply(lambda row: get_metadata_file(row[SPECIES]), axis=1)
 		categorical_metadata_file_list = merge_series_list(df[METADATA_FILES].to_list())
 		categorical_metadataframe_list = []
 
@@ -101,14 +100,14 @@ def main():
 		else:
 			for j in categorical_metadata_file_list:
 				try:
-					species_chunk_dataframe = pd.read_csv(j, sep=SEPARATOR, keep_default_na=KEEP_DEFAULT_NA)
+					species_chunk_dataframe = pd.read_csv(j, sep=const.FileFormat.SEPARATOR, keep_default_na=KEEP_DEFAULT_NA)
 					categorical_metadataframe_list.append(species_chunk_dataframe)
 				except FileNotFoundError:
 					pass
 
 			try:
 				categorical_integrated_dataframe = pd.concat(categorical_metadataframe_list)
-				categorical_integrated_dataframe.to_csv(categorical_integrated_metadata_file, sep=SEPARATOR, index=False)
+				categorical_integrated_dataframe.to_csv(categorical_integrated_metadata_file, sep=const.FileFormat.SEPARATOR, index=False)
 			except ValueError:
 				pass
 
