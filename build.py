@@ -30,7 +30,7 @@ def calculate_staistics(dataframe):
     """
     Calculates the summary statistics for the dataframe. This includes various percentiles for the N50, number of
     contigs, L50, and assembly length. Basically, it takes assembly statistics for many assemblies of the same species
-    and summarizes it one row, showing the calculated percentiles.
+    and summarizes it into one row, showing the calculated percentiles.
 
     PARAMETERS:
         dataframe (pandas.DataFrame): dataframe where each row represents an assembly and each column represents an
